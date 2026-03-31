@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "Error: Pushing to remote is disabled for this repository." >&2
+echo "Engagement repos contain customer-sensitive data and should not be pushed to shared remotes." >&2
+exit 1

@@ -64,7 +64,17 @@ CUSTOMER_SLUG="<customer_slug>"
 mkdir -p "engagements/${CUSTOMER_SLUG}"/{discovery,assessments,deliverables}
 ```
 
-### Step 3: Write CONTEXT.md
+### Step 3: Configure Git Hooks
+
+Set up the repo's shared Git hooks to prevent accidental pushes of customer-sensitive data:
+
+```bash
+git config core.hooksPath scripts/hooks
+```
+
+This activates the `pre-push` hook that blocks all pushes to remote. The hook is tracked in the repo under `scripts/hooks/`.
+
+### Step 4: Write CONTEXT.md
 
 Generate the initial `CONTEXT.md` at `engagements/<slug>/CONTEXT.md` using this template:
 
@@ -105,7 +115,7 @@ Generate the initial `CONTEXT.md` at `engagements/<slug>/CONTEXT.md` using this 
 <!-- Skills append their findings below this line -->
 ```
 
-### Step 4: Write .gitignore
+### Step 5: Write .gitignore
 
 Create or update the repo-level `.gitignore` to protect sensitive engagement data:
 
@@ -124,7 +134,7 @@ Thumbs.db
 *~
 ```
 
-### Step 5: Confirm and Recommend Next Steps
+### Step 6: Confirm and Recommend Next Steps
 
 After creating the workspace, confirm what was created and recommend the logical next skill:
 
