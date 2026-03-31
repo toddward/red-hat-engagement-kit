@@ -1,0 +1,12 @@
+# Engagement artifacts that should never be pushed to shared remotes
+engagements/*/discovery/*.sensitive
+engagements/*/discovery/*.classified
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor artifacts
+*.swp
+*.swo
+*~

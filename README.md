@@ -1,0 +1,114 @@
+# Red Hat Engagement Kit
+
+An AI-powered engagement delivery toolkit for Red Hat architects. Fork → `claude` → `/setup` → deliver.
+
+Small enough to understand, built to be customized, skills over features.
+
+---
+
+## What This Is
+
+A structured, skills-driven framework for delivering customer engagements. Each engagement phase is a Claude Code skill that guides the architect through discovery, assessment, and deliverable generation. Context accumulates in a living `CONTEXT.md` file — later skills build on earlier findings automatically.
+
+**This is not a SaaS product or a framework with dependencies.** It's a Git repo with markdown files that Claude Code knows how to execute. Fork it, customize it, run engagements with it.
+
+## Quick Start
+
+```bash
+gh repo fork <org>/rh-engagement-kit --clone
+cd rh-engagement-kit
+claude
+```
+
+Then type `/setup` inside Claude Code. Claude handles everything from there.
+
+## Skills
+
+| Skill | Phase | What It Does |
+|-------|-------|-------------|
+| `/setup` | Initialize | Gather engagement metadata, create workspace, write initial CONTEXT.md |
+| `/discover-infrastructure` | Discovery | Structured infrastructure interview across 6 domains, maturity scoring |
+| `/assess-app-portfolio` | Assessment | Run system info collection script, present findings, produce assessment report |
+| `/build-deliverable-deck` | Delivery | Customer-facing executive presentation (Quick Deck or PPTX) |
+
+## How It Works
+
+```
+/setup
+  └── Creates engagements/<customer>/CONTEXT.md (living memory)
+
+/discover-infrastructure
+  ├── Reads CONTEXT.md (knows what's already known)
+  ├── Conducts structured interview (adapts to engagement type)
+  ├── Writes discovery/infrastructure-discovery.md
+  └── Appends findings to CONTEXT.md
+
+/assess-app-portfolio
+  ├── Reads CONTEXT.md (builds on infrastructure findings)
+  ├── Runs collect-system-info.sh (demonstrates script execution)
+  ├── Presents system landscape to architect for review
+  ├── Writes assessments/system-info-collection.md
+  └── Appends findings to CONTEXT.md
+
+/build-deliverable-deck
+  ├── Reads EVERYTHING (CONTEXT.md + all reports)
+  ├── Structures executive narrative from findings
+  ├── Generates presentation (HTML Quick Deck or PPTX)
+  └── Writes to deliverables/
+```
+
+## Customization
+
+**Add a new assessment type:**
+Create `.claude/skills/assess-<topic>/SKILL.md` following the existing assessment skill patterns. It should read from `CONTEXT.md`, conduct an interview or intake, produce a report, and append findings back to `CONTEXT.md`.
+
+**Modify an assessment:**
+Edit the SKILL.md directly. The skills are just markdown instructions — change the questions, scoring criteria, or output format to match your methodology.
+
+**Add knowledge base content:**
+Drop reference material into `knowledge/solution-patterns/`, `knowledge/checklists/`, or `knowledge/templates/`. Skills will reference it.
+
+**Fork for your team:**
+Each team or practice area can maintain their own fork with customized skills, checklists, and solution patterns. The base repo provides the framework; your fork encodes your team's methodology.
+
+## Repository Structure
+
+```
+rh-engagement-kit/
+├── .claude/skills/              # Claude Code skills (the engagement engine)
+│   ├── setup/                   # Engagement initialization
+│   ├── discover-infrastructure/ # Infrastructure discovery
+│   ├── assess-app-portfolio/    # System info collection (with bash script)
+│   └── build-deliverable-deck/  # Deliverable presentation generator
+├── engagements/                 # Customer engagement workspaces
+│   └── .template/               # Template for new engagements
+├── knowledge/                   # Institutional knowledge base
+│   ├── solution-patterns/       # Red Hat reference patterns
+│   ├── checklists/              # Assessment checklists
+│   └── templates/               # Document/deck templates
+├── CLAUDE.md                    # Global engagement methodology
+└── README.md                    # This file
+```
+
+## Security & Data Handling
+
+- **Never push customer forks to public repos.** Engagement data is customer-sensitive.
+- **Air-gapped support.** All knowledge base content is local. No external API calls required during engagement execution (beyond Claude Code itself).
+- **Sensitive data tagging.** Skills mark sensitive information with `[SENSITIVE]` tags in CONTEXT.md.
+- **Classification boundaries.** The `.gitignore` excludes `.sensitive` and `.classified` files.
+
+## Contributing
+
+**Don't add features, add skills.**
+
+Want to add a new assessment type? Create a skill. Want to support a different deliverable format? Create a skill. The base repo stays minimal — your fork encodes your specific needs.
+
+## Requirements
+
+- [Claude Code](https://claude.ai/download)
+- Git
+- That's it.
+
+## License
+
+Internal Red Hat use. See your team's guidelines for external distribution.
