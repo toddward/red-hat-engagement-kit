@@ -1,18 +1,22 @@
 # Red Hat Engagement Kit
 
-An AI-powered engagement delivery toolkit for Red Hat architects. Fork → `claude` → `/setup` → deliver.
+An AI-powered engagement delivery toolkit for Red Hat architects. Fork → run your AI coding agent → `/setup` → deliver.
 
 Small enough to understand, built to be customized, skills over features.
+
+Supports both **Claude Code** and **OpenCode** as the AI agent runtime.
 
 ---
 
 ## What This Is
 
-A structured, skills-driven framework for delivering customer engagements. Each engagement phase is a Claude Code skill that guides the architect through discovery, assessment, and deliverable generation. Context accumulates in a living `CONTEXT.md` file — later skills build on earlier findings automatically.
+A structured, skills-driven framework for delivering customer engagements. Each engagement phase is a skill that guides the architect through discovery, assessment, and deliverable generation. Context accumulates in a living `CONTEXT.md` file — later skills build on earlier findings automatically.
 
-**This is not a SaaS product or a framework with dependencies.** It's a Git repo with markdown files that Claude Code knows how to execute. Fork it, customize it, run engagements with it.
+**This is not a SaaS product or a framework with dependencies.** It's a Git repo with markdown files that your AI coding agent knows how to execute. Fork it, customize it, run engagements with it.
 
 ## Quick Start
+
+### With Claude Code
 
 ```bash
 gh repo fork <org>/rh-engagement-kit --clone
@@ -20,7 +24,17 @@ cd rh-engagement-kit
 claude
 ```
 
-Then type `/setup` inside Claude Code. Claude handles everything from there.
+Then type `/setup` inside Claude Code.
+
+### With OpenCode
+
+```bash
+gh repo fork <org>/rh-engagement-kit --clone
+cd rh-engagement-kit
+opencode
+```
+
+Then type `/setup` inside OpenCode.
 
 ## Skills
 
@@ -45,7 +59,7 @@ Then type `/setup` inside Claude Code. Claude handles everything from there.
 
 /assess-app-portfolio
   ├── Reads CONTEXT.md (builds on infrastructure findings)
-  ├── Runs collect-system-info.sh (demonstrates script execution)
+  ├── Runs scripts/collect-system-info.sh (demonstrates script execution)
   ├── Presents system landscape to architect for review
   ├── Writes assessments/system-info-collection.md
   └── Appends findings to CONTEXT.md
@@ -60,7 +74,11 @@ Then type `/setup` inside Claude Code. Claude handles everything from there.
 ## Customization
 
 **Add a new assessment type:**
-Create `.claude/skills/assess-<topic>/SKILL.md` following the existing assessment skill patterns. It should read from `CONTEXT.md`, conduct an interview or intake, produce a report, and append findings back to `CONTEXT.md`.
+Create a skill following the existing patterns:
+- Claude Code: `.claude/skills/assess-<topic>/SKILL.md`
+- OpenCode: `.opencode/skills/assess-<topic>/SKILL.md`
+
+It should read from `CONTEXT.md`, conduct an interview or intake, produce a report, and append findings back to `CONTEXT.md`.
 
 **Modify an assessment:**
 Edit the SKILL.md directly. The skills are just markdown instructions — change the questions, scoring criteria, or output format to match your methodology.
@@ -75,25 +93,34 @@ Each team or practice area can maintain their own fork with customized skills, c
 
 ```
 rh-engagement-kit/
-├── .claude/skills/              # Claude Code skills (the engagement engine)
-│   ├── setup/                   # Engagement initialization
-│   ├── discover-infrastructure/ # Infrastructure discovery
-│   ├── assess-app-portfolio/    # System info collection (with bash script)
-│   └── build-deliverable-deck/  # Deliverable presentation generator
+├── .claude/skills/              # Claude Code skills
+│   ├── setup/
+│   ├── discover-infrastructure/
+│   ├── assess-app-portfolio/
+│   └── build-deliverable-deck/
+├── .opencode/skills/            # OpenCode skills
+│   ├── setup/
+│   ├── discover-infrastructure/
+│   ├── assess-app-portfolio/
+│   └── build-deliverable-deck/
+├── scripts/                     # Shared scripts (used by both runtimes)
+│   └── collect-system-info.sh
 ├── engagements/                 # Customer engagement workspaces
-│   └── .template/               # Template for new engagements
+│   └── .template/
 ├── knowledge/                   # Institutional knowledge base
-│   ├── solution-patterns/       # Red Hat reference patterns
-│   ├── checklists/              # Assessment checklists
-│   └── templates/               # Document/deck templates
-├── CLAUDE.md                    # Global engagement methodology
-└── README.md                    # This file
+│   ├── solution-patterns/
+│   ├── checklists/
+│   └── templates/
+├── CLAUDE.md                    # Claude Code agent instructions
+├── AGENTS.md                    # OpenCode agent instructions
+├── opencode.json                # OpenCode project config
+└── README.md
 ```
 
 ## Security & Data Handling
 
 - **Never push customer forks to public repos.** Engagement data is customer-sensitive.
-- **Air-gapped support.** All knowledge base content is local. No external API calls required during engagement execution (beyond Claude Code itself).
+- **Air-gapped support.** All knowledge base content is local. No external API calls required during engagement execution (beyond the AI agent itself).
 - **Sensitive data tagging.** Skills mark sensitive information with `[SENSITIVE]` tags in CONTEXT.md.
 - **Classification boundaries.** The `.gitignore` excludes `.sensitive` and `.classified` files.
 
@@ -103,9 +130,11 @@ rh-engagement-kit/
 
 Want to add a new assessment type? Create a skill. Want to support a different deliverable format? Create a skill. The base repo stays minimal — your fork encodes your specific needs.
 
+When adding skills, create them in both `.claude/skills/` and `.opencode/skills/` to maintain dual-runtime support.
+
 ## Requirements
 
-- [Claude Code](https://claude.ai/download)
+- [Claude Code](https://claude.ai/download) **or** [OpenCode](https://github.com/opencode-ai/opencode)
 - Git
 - That's it.
 

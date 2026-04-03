@@ -13,7 +13,7 @@ This skill bootstraps a new customer engagement by gathering essential metadata 
 
 ## When This Skill Triggers
 
-- Architect runs `/setup` in Claude Code
+- Architect runs `/setup` in OpenCode
 - Architect says "start a new engagement", "initialize engagement", or "set up for <customer>"
 - The `engagements/` directory has no customer subdirectories yet
 
@@ -168,11 +168,11 @@ Recommended next steps based on engagement type:
 ```
 Architect: /setup
 
-Claude: Let's get this engagement started. What's the customer name?
+OpenCode: Let's get this engagement started. What's the customer name?
 
 Architect: Acme Federal Services
 
-Claude: Got it — Acme Federal Services. What type of engagement is this?
+OpenCode: Got it — Acme Federal Services. What type of engagement is this?
   1. Application Modernization
   2. AI/ML Enablement
   3. Platform Assessment
@@ -182,32 +182,32 @@ Claude: Got it — Acme Federal Services. What type of engagement is this?
 
 Architect: 2 - AI/ML Enablement
 
-Claude: Who's the lead architect for this engagement?
+OpenCode: Who's the lead architect for this engagement?
 
 Architect: Me — Todd Wardzinski
 
-Claude: What are the start and target end dates?
+OpenCode: What are the start and target end dates?
 
 Architect: Starting next week, targeting end of Q2
 
-Claude: And who's the customer executive sponsor?
+OpenCode: And who's the customer executive sponsor?
 
 Architect: Deputy Director of IT, Mark Johnson
 
-Claude: A few more optional details that'll help downstream —
+OpenCode: A few more optional details that'll help downstream —
 Any clearance requirements?
 
 Architect: TS/SCI
 
-Claude: Environment type — connected, limited connectivity, or air-gapped?
+OpenCode: Environment type — connected, limited connectivity, or air-gapped?
 
 Architect: Air-gapped
 
-Claude: Any existing Red Hat products in the environment?
+OpenCode: Any existing Red Hat products in the environment?
 
 Architect: RHEL 8 across the board, some Ansible Tower
 
-Claude: ✅ Engagement initialized: Acme Federal Services
+OpenCode: ✅ Engagement initialized: Acme Federal Services
 📁 Workspace: engagements/acme-federal-services/
 📄 Context: engagements/acme-federal-services/CONTEXT.md
 

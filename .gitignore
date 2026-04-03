@@ -10,3 +10,6 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# OpenCode session data
+.opencode/sessions/
