@@ -74,7 +74,7 @@ opencode
 ```
 
 **Adding a custom skill:**
-Create a new directory under `.opencode/skills/` with a `SKILL.md` file. Follow the existing skill patterns.
+Create a new directory under `.claude/skills/` with a `SKILL.md` file. Follow the existing skill patterns.
 
 ## Security Notes
 

@@ -74,9 +74,7 @@ Then type `/setup` inside OpenCode.
 ## Customization
 
 **Add a new assessment type:**
-Create a skill following the existing patterns:
-- Claude Code: `.claude/skills/assess-<topic>/SKILL.md`
-- OpenCode: `.opencode/skills/assess-<topic>/SKILL.md`
+Create a skill at `.claude/skills/assess-<topic>/SKILL.md` following the existing patterns. Both Claude Code and OpenCode read from this directory.
 
 It should read from `CONTEXT.md`, conduct an interview or intake, produce a report, and append findings back to `CONTEXT.md`.
 
@@ -93,12 +91,7 @@ Each team or practice area can maintain their own fork with customized skills, c
 
 ```
 rh-engagement-kit/
-├── .claude/skills/              # Claude Code skills
-│   ├── setup/
-│   ├── discover-infrastructure/
-│   ├── assess-app-portfolio/
-│   └── build-deliverable-deck/
-├── .opencode/skills/            # OpenCode skills
+├── .claude/skills/              # Skills (shared by Claude Code & OpenCode)
 │   ├── setup/
 │   ├── discover-infrastructure/
 │   ├── assess-app-portfolio/
@@ -130,7 +123,7 @@ rh-engagement-kit/
 
 Want to add a new assessment type? Create a skill. Want to support a different deliverable format? Create a skill. The base repo stays minimal — your fork encodes your specific needs.
 
-When adding skills, create them in both `.claude/skills/` and `.opencode/skills/` to maintain dual-runtime support.
+Add new skills to `.claude/skills/` — both Claude Code and OpenCode read from this directory.
 
 ## Requirements
 
