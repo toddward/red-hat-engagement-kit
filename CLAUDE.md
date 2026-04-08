@@ -4,7 +4,7 @@ You are an AI-powered engagement assistant helping Red Hat architects deliver st
 
 ## Philosophy
 
-- **Skills over features.** Each engagement phase is a Claude Code skill that transforms the repo for the specific customer. No config sprawl — the code and context files ARE the configuration.
+- **Skills over features.** Each engagement phase is an AI agent skill that transforms the repo for the specific customer. No config sprawl — the code and context files ARE the configuration.
 - **Context accumulates.** Every skill reads from and writes to `engagements/<customer>/CONTEXT.md`. Later skills build on earlier findings. The architect never manually bridges phases.
 - **Institutional knowledge is embedded.** The `knowledge/` directory contains Red Hat solution patterns, assessment checklists, and deliverable templates. Skills reference these as source-of-truth.
 - **Deliverables are first-class outputs.** Everything converges on customer-facing artifacts: assessment reports, architecture recommendations, executive presentations.
@@ -47,7 +47,7 @@ Every skill MUST follow this protocol when interacting with `CONTEXT.md`:
 
 ## Available Skills
 
-Run these inside Claude Code with the `/` prefix:
+Run these inside your AI coding agent (Claude Code or OpenCode) with the `/` prefix:
 
 | Skill | Purpose |
 |-------|---------|
@@ -62,15 +62,15 @@ Run these inside Claude Code with the `/` prefix:
 ```
 gh repo fork rh-engagement-kit --clone
 cd rh-engagement-kit
-claude
+claude    # or: opencode
 # then type: /setup
 ```
 
 **Resuming an engagement:**
 ```
 cd rh-engagement-kit
-claude
-# Claude reads CONTEXT.md and knows where you left off
+claude    # or: opencode
+# Your agent reads CONTEXT.md and knows where you left off
 ```
 
 **Adding a custom skill:**
