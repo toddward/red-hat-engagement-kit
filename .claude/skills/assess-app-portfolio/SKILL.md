@@ -29,7 +29,7 @@ If multiple engagement directories exist under `engagements/`, ask the architect
 Execute the system information collection script bundled with this skill:
 
 ```bash
-bash scripts/collect-system-info.sh
+bash .claude/skills/assess-app-portfolio/collect-system-info.sh
 ```
 
 Capture the full output — this is the raw discovery data.

@@ -59,7 +59,7 @@ Then type `/setup` inside OpenCode.
 
 /assess-app-portfolio
   ├── Reads CONTEXT.md (builds on infrastructure findings)
-  ├── Runs scripts/collect-system-info.sh (demonstrates script execution)
+  ├── Runs .claude/skills/assess-app-portfolio/collect-system-info.sh (demonstrates script execution)
   ├── Presents system landscape to architect for review
   ├── Writes assessments/system-info-collection.md
   └── Appends findings to CONTEXT.md
@@ -92,12 +92,10 @@ Each team or practice area can maintain their own fork with customized skills, c
 ```
 rh-engagement-kit/
 ├── .claude/skills/              # Skills (shared by Claude Code & OpenCode)
-│   ├── setup/
+│   ├── setup/                   # Includes hooks/pre-push
 │   ├── discover-infrastructure/
-│   ├── assess-app-portfolio/
+│   ├── assess-app-portfolio/    # Includes collect-system-info.sh
 │   └── build-deliverable-deck/
-├── scripts/                     # Shared scripts (used by both runtimes)
-│   └── collect-system-info.sh
 ├── engagements/                 # Customer engagement workspaces
 │   └── .template/
 ├── knowledge/                   # Institutional knowledge base

@@ -69,10 +69,10 @@ mkdir -p "engagements/${CUSTOMER_SLUG}"/{discovery,assessments,deliverables}
 Set up the repo's shared Git hooks to prevent accidental pushes of customer-sensitive data:
 
 ```bash
-git config core.hooksPath scripts/hooks
+git config core.hooksPath .claude/skills/setup/hooks
 ```
 
-This activates the `pre-push` hook that blocks all pushes to remote. The hook is tracked in the repo under `scripts/hooks/`.
+This activates the `pre-push` hook that blocks all pushes to remote. The hook is bundled with this skill under `.claude/skills/setup/hooks/`.
 
 ### Step 4: Write CONTEXT.md
 
