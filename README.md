@@ -102,9 +102,8 @@ rh-engagement-kit/
 │   ├── solution-patterns/
 │   ├── checklists/
 │   └── templates/
-├── CLAUDE.md                    # Claude Code agent instructions
-├── AGENTS.md                    # OpenCode agent instructions
-├── opencode.json                # OpenCode project config
+├── CLAUDE.md                    # Agent instructions (shared by Claude Code & OpenCode)
+├── opencode.json                # OpenCode project config (points to CLAUDE.md)
 └── README.md
 ```
 
