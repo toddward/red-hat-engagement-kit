@@ -1,0 +1,93 @@
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--rh-gray-500);
+  margin-bottom: 10px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--rh-radius);
+  background: var(--rh-gray-100);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--rh-transition-fast);
+  animation: fadeIn var(--rh-transition);
+}
+
+.card:hover {
+  background: var(--rh-white);
+  box-shadow: var(--rh-shadow-sm);
+  border-color: var(--rh-gray-200);
+}
+
+.cardActive {
+  background: var(--rh-blue-light);
+  border-color: var(--rh-blue);
+}
+
+.cardActive:hover {
+  background: var(--rh-blue-light);
+  border-color: var(--rh-blue);
+}
+
+.cardSelected {
+  border-color: var(--rh-blue);
+}
+
+.cardSelected:hover {
+  border-color: var(--rh-blue);
+  box-shadow: 0 0 0 1px rgba(0, 102, 204, 0.15), var(--rh-shadow-sm);
+}
+
+.checkbox {
+  margin-top: 3px;
+  accent-color: var(--rh-red);
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
+.cardBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.skillName {
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--rh-font-mono);
+  color: var(--rh-gray-700);
+  transition: color var(--rh-transition-fast);
+}
+
+.card:hover .skillName {
+  color: var(--rh-black);
+}
+
+.skillDescription {
+  font-size: 12px;
+  color: var(--rh-gray-500);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: all var(--rh-transition-fast);
+}
+
+.card:hover .skillDescription {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}

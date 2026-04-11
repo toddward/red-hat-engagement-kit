@@ -1,0 +1,125 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Assistant message */
+.assistantBlock {
+  padding: 8px 0;
+  animation: slideInUp 0.15s ease;
+}
+
+/* Tool use block */
+.toolUseBlock {
+  border-radius: var(--rh-radius);
+  border: none;
+  border-left: 3px solid var(--rh-blue);
+  background: var(--rh-gray-100);
+  transition: box-shadow var(--rh-transition-fast);
+  animation: slideInUp 0.15s ease;
+}
+
+.toolUseBlock:hover {
+  box-shadow: var(--rh-shadow-sm);
+}
+
+.toolUseSummary {
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: var(--rh-font-mono);
+  color: var(--rh-blue);
+  user-select: none;
+}
+
+.toolCode {
+  padding: 8px 12px;
+  font-size: 12px;
+  overflow: auto;
+  border-top: 1px solid var(--rh-gray-200);
+  margin: 0;
+  background: var(--rh-black);
+  color: #e0e0e0;
+  border-radius: 0 0 var(--rh-radius) var(--rh-radius);
+}
+
+/* Tool result block */
+.toolResultBlock {
+  border-radius: var(--rh-radius);
+  border: none;
+  border-left: 3px solid var(--rh-gray-300);
+  background: var(--rh-gray-100);
+  transition: box-shadow var(--rh-transition-fast);
+  animation: slideInUp 0.15s ease;
+}
+
+.toolResultBlock:hover {
+  box-shadow: var(--rh-shadow-sm);
+}
+
+.toolResultSummary {
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--rh-gray-500);
+  user-select: none;
+}
+
+/* Skill start/complete */
+.skillStart {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rh-blue);
+  border-left: 3px solid var(--rh-blue);
+  background: var(--rh-blue-light);
+  border-radius: 0 var(--rh-radius) var(--rh-radius) 0;
+  animation: slideInLeft 0.2s ease;
+}
+
+.skillComplete {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rh-green);
+  border-left: 3px solid var(--rh-green);
+  background: var(--rh-green-light);
+  border-radius: 0 var(--rh-radius) var(--rh-radius) 0;
+  animation: slideInLeft 0.2s ease;
+}
+
+/* Result */
+.resultSuccess {
+  padding: 12px 16px;
+  border-radius: var(--rh-radius);
+  background: var(--rh-green-light);
+  border: 1px solid var(--rh-green);
+  font-size: 13px;
+  animation: fadeIn var(--rh-transition);
+}
+
+.resultError {
+  padding: 12px 16px;
+  border-radius: var(--rh-radius);
+  background: var(--rh-red-light);
+  border: 1px solid var(--rh-red);
+  font-size: 13px;
+  animation: fadeIn var(--rh-transition);
+}
+
+.resultCost {
+  margin-left: 12px;
+  color: var(--rh-gray-500);
+}
+
+/* Error block */
+.errorBlock {
+  padding: 12px 16px;
+  border-radius: var(--rh-radius);
+  background: var(--rh-red-light);
+  border: 1px solid var(--rh-red);
+  color: var(--rh-red-dark);
+  font-size: 13px;
+  animation: fadeIn var(--rh-transition);
+}

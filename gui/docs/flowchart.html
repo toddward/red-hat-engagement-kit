@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red Hat Engagement Kit — Architecture Flowchart</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Overpass:wght@300;400;600;800&family=Overpass+Mono:wght@400;600&display=swap');
+
+  :root {
+    --red: #ee0000;
+    --red-dark: #a30000;
+    --red-glow: rgba(238, 0, 0, 0.15);
+    --black: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface-2: #242424;
+    --surface-3: #2e2e2e;
+    --border: #3a3a3a;
+    --border-light: #4a4a4a;
+    --text: #e8e8e8;
+    --text-dim: #888;
+    --text-muted: #555;
+    --blue: #0066cc;
+    --blue-glow: rgba(0, 102, 204, 0.15);
+    --green: #3e8635;
+    --green-glow: rgba(62, 134, 53, 0.15);
+    --yellow: #f0ab00;
+    --yellow-glow: rgba(240, 171, 0, 0.12);
+    --purple: #7b2d8e;
+    --purple-glow: rgba(123, 45, 142, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Overpass', sans-serif;
+    background: var(--black);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(238, 0, 0, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(238, 0, 0, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--black);
+    border-bottom: 2px solid var(--red);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    backdrop-filter: blur(12px);
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 0;
+    right: 0;
+    height: 12px;
+    background: linear-gradient(to bottom, rgba(238, 0, 0, 0.08), transparent);
+    pointer-events: none;
+  }
+
+  .logo-mark {
+    width: 32px;
+    height: 32px;
+    background: var(--red);
+    clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  header h1 span {
+    color: var(--text-dim);
+    font-weight: 300;
+    margin-left: 8px;
+  }
+
+  .legend {
+    margin-left: auto;
+    display: flex;
+    gap: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .legend-item:hover { color: var(--text); }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  .content {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px;
+  }
+
+  /* ── PHASE TIMELINE ── */
+
+  .timeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  .timeline-line {
+    height: 2px;
+    width: 80px;
+    background: var(--border);
+    position: relative;
+  }
+
+  .timeline-line::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: -4px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid var(--border);
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+
+  .phase-badge {
+    padding: 10px 28px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    user-select: none;
+  }
+
+  .phase-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .phase-badge.active::before { opacity: 1; }
+
+  .phase-pre {
+    background: var(--surface-2);
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    box-shadow: 0 0 0 0 var(--blue-glow);
+  }
+  .phase-pre.active, .phase-pre:hover {
+    background: var(--blue-glow);
+    box-shadow: 0 0 20px 4px var(--blue-glow);
+  }
+
+  .phase-live {
+    background: var(--surface-2);
+    border: 1px solid var(--red);
+    color: var(--red);
+    box-shadow: 0 0 0 0 var(--red-glow);
+  }
+  .phase-live.active, .phase-live:hover {
+    background: var(--red-glow);
+    box-shadow: 0 0 20px 4px var(--red-glow);
+  }
+
+  .phase-leave {
+    background: var(--surface-2);
+    border: 1px solid var(--green);
+    color: var(--green);
+    box-shadow: 0 0 0 0 var(--green-glow);
+  }
+  .phase-leave.active, .phase-leave:hover {
+    background: var(--green-glow);
+    box-shadow: 0 0 20px 4px var(--green-glow);
+  }
+
+  .phase-num {
+    font-family: 'Overpass Mono', monospace;
+    font-size: 10px;
+    opacity: 0.5;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* ── MAIN DIAGRAM ── */
+
+  .diagram {
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    gap: 32px;
+    min-height: 600px;
+  }
+
+  /* ── LEFT COLUMN: INPUTS ── */
+
+  .col-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    transition: background 0.3s;
+  }
+
+  .card:hover {
+    border-color: var(--border-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .card-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    margin-top: 8px;
+  }
+
+  /* Role checklists */
+  .checklist-card::before { background: var(--yellow); }
+  .checklist-card .card-tag { background: var(--yellow-glow); color: var(--yellow); }
+
+  .checklist-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 10px;
+  }
+
+  .role-chip {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-weight: 600;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .role-chip:hover {
+    border-color: var(--yellow);
+    color: var(--yellow);
+  }
+
+  /* Skills */
+  .skill-card::before { background: var(--red); }
+  .skill-card .card-tag { background: var(--red-glow); color: var(--red); }
+
+  .skill-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .skill-item {
+    font-family: 'Overpass Mono', monospace;
+    font-size: 11px;
+    padding: 5px 8px;
+    border-radius: 3px;
+    background: var(--surface-3);
+    border-left: 2px solid var(--red-dark);
+    color: var(--text-dim);
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .skill-item:hover {
+    color: var(--text);
+    border-left-color: var(--red);
+    background: var(--red-glow);
+  }
+
+  /* Engagement types */
+  .engagement-card::before { background: var(--blue); }
+  .engagement-card .card-tag { background: var(--blue-glow); color: var(--blue); }
+
+  .eng-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .eng-chip {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .eng-chip:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  /* ── CENTER COLUMN: GUI CORE ── */
+
+  .gui-core {
+    position: relative;
+  }
+
+  .gui-box {
+    background: var(--surface);
+    border: 2px solid var(--red);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 30px var(--red-glow);
+  }
+
+  .gui-titlebar {
+    background: var(--black);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .gui-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .gui-dot:nth-child(1) { background: #ff5f57; }
+  .gui-dot:nth-child(2) { background: #febc2e; }
+  .gui-dot:nth-child(3) { background: #28c840; }
+
+  .gui-titlebar-text {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 8px;
+    font-family: 'Overpass Mono', monospace;
+  }
+
+  .gui-body {
+    padding: 20px;
+    min-height: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Phase detection */
+  .detection-block {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    position: relative;
+  }
+
+  .detection-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .detection-logic {
+    font-family: 'Overpass Mono', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+  }
+
+  .detection-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .detection-line:hover { color: var(--text); }
+
+  .det-condition {
+    color: var(--purple);
+  }
+
+  .det-arrow {
+    color: var(--text-muted);
+  }
+
+  .det-result {
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .det-pre { background: var(--blue-glow); color: var(--blue); }
+  .det-live { background: var(--red-glow); color: var(--red); }
+  .det-leave { background: var(--green-glow); color: var(--green); }
+
+  /* GUI Modes */
+  .modes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+
+  .mode-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: default;
+  }
+
+  .mode-card:hover {
+    border-color: var(--border-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+
+  .mode-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: block;
+    filter: grayscale(0.3);
+  }
+
+  .mode-name {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .mode-desc {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .mode-workbench { border-top: 2px solid var(--blue); }
+  .mode-workbench .mode-name { color: var(--blue); }
+  .mode-workbench:hover { box-shadow: 0 4px 16px var(--blue-glow); }
+
+  .mode-browser { border-top: 2px solid var(--yellow); }
+  .mode-browser .mode-name { color: var(--yellow); }
+  .mode-browser:hover { box-shadow: 0 4px 16px var(--yellow-glow); }
+
+  .mode-assistant { border-top: 2px solid var(--green); }
+  .mode-assistant .mode-name { color: var(--green); }
+  .mode-assistant:hover { box-shadow: 0 4px 16px var(--green-glow); }
+
+  /* Data flow within GUI */
+  .dataflow {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .flow-row:hover {
+    border-color: var(--border-light);
+    background: var(--surface-3);
+  }
+
+  .flow-arrow {
+    color: var(--red);
+    font-family: 'Overpass Mono', monospace;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .flow-label {
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+
+  .flow-mono {
+    font-family: 'Overpass Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  /* Provider block */
+  .provider-block {
+    background: var(--surface-2);
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .provider-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+  }
+
+  .provider-options {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .provider-chip {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Overpass Mono', monospace;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .provider-chip:hover {
+    border-color: var(--purple);
+    color: var(--purple);
+  }
+
+  .provider-chip .provider-sub {
+    display: block;
+    font-size: 9px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-family: 'Overpass', sans-serif;
+  }
+
+  /* ── RIGHT COLUMN: OUTPUTS ── */
+
+  .output-card::before { background: var(--green); }
+  .output-card .card-tag { background: var(--green-glow); color: var(--green); }
+
+  .artifact-list {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .artifact-item {
+    font-family: 'Overpass Mono', monospace;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    background: var(--surface-3);
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .artifact-item:hover {
+    color: var(--text);
+    background: var(--green-glow);
+  }
+
+  .artifact-icon {
+    font-size: 11px;
+    opacity: 0.6;
+  }
+
+  .context-card {
+    background: var(--surface);
+    border: 2px solid var(--purple);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+    box-shadow: 0 0 20px var(--purple-glow);
+  }
+
+  .context-card .card-title {
+    color: var(--purple);
+  }
+
+  .context-sections {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .context-section {
+    font-size: 10px;
+    color: var(--text-dim);
+    padding: 3px 0;
+    padding-left: 12px;
+    border-left: 1px solid var(--purple);
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .context-section:hover {
+    color: var(--text);
+    border-left-color: var(--purple);
+    background: var(--purple-glow);
+  }
+
+  /* ── FLOW CONNECTORS (CSS arrows) ── */
+
+  .connector-label {
+    position: absolute;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* ── BOTTOM SECTION: FILE STRUCTURE ── */
+
+  .file-structure {
+    margin-top: 48px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .fs-header {
+    padding: 12px 20px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+  }
+
+  .fs-body {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    font-family: 'Overpass Mono', monospace;
+    font-size: 11px;
+  }
+
+  .fs-col-title {
+    font-family: 'Overpass', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .fs-tree {
+    line-height: 1.8;
+    color: var(--text-dim);
+  }
+
+  .fs-dir { color: var(--blue); }
+  .fs-file { color: var(--text-dim); }
+  .fs-highlight { color: var(--yellow); }
+  .fs-accent { color: var(--red); }
+
+  /* ── PHASE VISIBILITY ── */
+
+  [data-phase] {
+    transition: opacity 0.4s ease, filter 0.4s ease;
+  }
+
+  body.filter-pre [data-phase]:not([data-phase*="pre"]) { opacity: 0.15; filter: grayscale(1); }
+  body.filter-live [data-phase]:not([data-phase*="live"]) { opacity: 0.15; filter: grayscale(1); }
+  body.filter-leave [data-phase]:not([data-phase*="leave"]) { opacity: 0.15; filter: grayscale(1); }
+
+  /* ── ENTRANCE ANIMATIONS ── */
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card, .gui-box, .file-structure, .mode-card, .flow-row, .detection-block, .provider-block {
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+  .card:nth-child(4) { animation-delay: 0.2s; }
+
+  .mode-card:nth-child(1) { animation-delay: 0.15s; }
+  .mode-card:nth-child(2) { animation-delay: 0.2s; }
+  .mode-card:nth-child(3) { animation-delay: 0.25s; }
+
+  .flow-row:nth-child(1) { animation-delay: 0.25s; }
+  .flow-row:nth-child(2) { animation-delay: 0.3s; }
+  .flow-row:nth-child(3) { animation-delay: 0.35s; }
+  .flow-row:nth-child(4) { animation-delay: 0.4s; }
+
+  .file-structure { animation-delay: 0.5s; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1200px) {
+    .diagram { grid-template-columns: 1fr; gap: 24px; }
+    .fs-body { grid-template-columns: 1fr; }
+    .legend { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark"></div>
+  <h1>Engagement Kit <span>Architecture Flowchart</span></h1>
+  <div class="legend">
+    <div class="legend-item" onclick="togglePhase('pre')">
+      <div class="legend-dot" style="background: var(--blue)"></div>
+      Pre-engagement
+    </div>
+    <div class="legend-item" onclick="togglePhase('live')">
+      <div class="legend-dot" style="background: var(--red)"></div>
+      Live
+    </div>
+    <div class="legend-item" onclick="togglePhase('leave')">
+      <div class="legend-dot" style="background: var(--green)"></div>
+      Leave-behind
+    </div>
+    <div class="legend-item" onclick="togglePhase(null)" style="color: var(--text-dim)">
+      Clear
+    </div>
+  </div>
+</header>
+
+<div class="content">
+
+  <!-- PHASE TIMELINE -->
+  <div class="timeline">
+    <div class="phase-badge phase-pre active" onclick="togglePhase('pre')">
+      <span class="phase-num">01</span>
+      Pre-engagement
+    </div>
+    <div class="timeline-line"></div>
+    <div class="phase-badge phase-live" onclick="togglePhase('live')">
+      <span class="phase-num">02</span>
+      Live Engagement
+    </div>
+    <div class="timeline-line"></div>
+    <div class="phase-badge phase-leave" onclick="togglePhase('leave')">
+      <span class="phase-num">03</span>
+      Leave-behind
+    </div>
+  </div>
+
+  <!-- MAIN 3-COLUMN DIAGRAM -->
+  <div class="diagram">
+
+    <!-- LEFT: INPUTS -->
+    <div>
+      <div class="col-label">Inputs &amp; Configuration</div>
+
+      <div class="card checklist-card" data-phase="pre">
+        <div class="card-title">
+          Role-Based Checklists
+        </div>
+        <div class="card-desc">
+          Customizable per-role preparation checklists. Templates live in <code style="font-size:10px;color:var(--yellow)">knowledge/checklists/</code>, instantiated per engagement.
+        </div>
+        <div class="checklist-roles">
+          <div class="role-chip">Project Manager</div>
+          <div class="role-chip">Architect</div>
+          <div class="role-chip">Consultant</div>
+          <div class="role-chip">Customer Kickoff</div>
+        </div>
+        <div class="card-tag">Pre-engagement</div>
+      </div>
+
+      <div class="card skill-card" data-phase="pre live">
+        <div class="card-title">
+          Skills Library
+        </div>
+        <div class="card-desc">
+          Architect selects skills relevant to this engagement type. Not all skills apply to every engagement.
+        </div>
+        <div class="skill-list">
+          <div class="skill-item">/setup</div>
+          <div class="skill-item">/discover-infrastructure</div>
+          <div class="skill-item">/assess-app-portfolio</div>
+          <div class="skill-item">/build-deliverable-deck</div>
+          <div class="skill-item" style="border-left-color: var(--text-muted); opacity: 0.5;">/custom-skills...</div>
+        </div>
+        <div class="card-tag">Pre + Live</div>
+      </div>
+
+      <div class="card engagement-card" data-phase="pre live leave">
+        <div class="card-title">
+          Engagement Types
+        </div>
+        <div class="card-desc">
+          Determines which skills and checklists are relevant. Set during <code style="font-size:10px;color:var(--blue)">/setup</code>.
+        </div>
+        <div class="eng-types">
+          <div class="eng-chip">OpenShift</div>
+          <div class="eng-chip">Ansible</div>
+          <div class="eng-chip">AI/ML</div>
+          <div class="eng-chip">App Modernization</div>
+          <div class="eng-chip">Security</div>
+          <div class="eng-chip">Platform</div>
+          <div class="eng-chip">Custom</div>
+        </div>
+        <div class="card-tag">All Phases</div>
+      </div>
+    </div>
+
+    <!-- CENTER: GUI -->
+    <div class="gui-core">
+      <div class="gui-box">
+        <div class="gui-titlebar">
+          <div class="gui-dot"></div>
+          <div class="gui-dot"></div>
+          <div class="gui-dot"></div>
+          <span class="gui-titlebar-text">localhost:5173 — Red Hat Engagement Kit</span>
+        </div>
+        <div class="gui-body">
+
+          <!-- Phase Detection -->
+          <div class="detection-block" data-phase="pre live leave">
+            <div class="detection-label">Phase Detection — reads CONTEXT.md</div>
+            <div class="detection-logic">
+              <div class="detection-line">
+                <span class="det-condition">no CONTEXT.md</span>
+                <span class="det-arrow">→</span>
+                <span class="det-result det-pre">Pre-engagement</span>
+              </div>
+              <div class="detection-line">
+                <span class="det-condition">CONTEXT.md, no deliverables/</span>
+                <span class="det-arrow">→</span>
+                <span class="det-result det-live">Live Engagement</span>
+              </div>
+              <div class="detection-line">
+                <span class="det-condition">deliverables/ present</span>
+                <span class="det-arrow">→</span>
+                <span class="det-result det-leave">Leave-behind</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Three GUI Modes -->
+          <div class="modes-grid">
+            <div class="mode-card mode-workbench" data-phase="pre live">
+              <span class="mode-icon">&#9881;</span>
+              <div class="mode-name">Workbench</div>
+              <div class="mode-desc">Skill execution, checklist tracking, data collection</div>
+            </div>
+            <div class="mode-card mode-browser" data-phase="pre live leave">
+              <span class="mode-icon">&#9783;</span>
+              <div class="mode-name">Artifact Browser</div>
+              <div class="mode-desc">Navigate reports, assessments, deliverables as rendered markdown</div>
+            </div>
+            <div class="mode-card mode-assistant" data-phase="leave">
+              <span class="mode-icon">&#9993;</span>
+              <div class="mode-name">Assistant</div>
+              <div class="mode-desc">Q&amp;A grounded in engagement context. Requires LLM connection.</div>
+            </div>
+          </div>
+
+          <!-- Data Flow -->
+          <div class="dataflow" data-phase="pre live leave">
+            <div class="flow-row" data-phase="pre live">
+              <span class="flow-mono">Skill Execution</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-label">streams via SSE</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-mono">Browser</span>
+            </div>
+            <div class="flow-row" data-phase="pre live">
+              <span class="flow-mono">Skills</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-label">writes to</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-mono">CONTEXT.md</span>
+            </div>
+            <div class="flow-row" data-phase="pre live">
+              <span class="flow-mono">Skills</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-label">generates</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-mono">Artifacts</span>
+            </div>
+            <div class="flow-row" data-phase="leave">
+              <span class="flow-mono">Client Query</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-label">grounded in</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-mono">All Artifacts</span>
+            </div>
+          </div>
+
+          <!-- Provider -->
+          <div class="provider-block" data-phase="pre live leave">
+            <div class="provider-label">Providers</div>
+            <div class="provider-options">
+              <div class="provider-chip">
+                Claude Code
+                <span class="provider-sub">CLI subprocess</span>
+              </div>
+              <div class="provider-chip">
+                OpenCode
+                <span class="provider-sub">SDK streaming</span>
+              </div>
+              <div class="provider-chip">
+                None
+                <span class="provider-sub">Browse-only mode</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: OUTPUTS -->
+    <div>
+      <div class="col-label">Outputs &amp; Artifacts</div>
+
+      <div class="context-card" data-phase="pre live leave">
+        <div class="card-title">
+          CONTEXT.md
+        </div>
+        <div class="card-desc">
+          Living engagement memory. Append-only, auto-updated by every skill. The connective tissue across all phases.
+        </div>
+        <div class="context-sections">
+          <div class="context-section">Engagement metadata</div>
+          <div class="context-section">Discovery findings</div>
+          <div class="context-section">Assessment scores</div>
+          <div class="context-section">Recommendations</div>
+          <div class="context-section">Conflict flags</div>
+        </div>
+      </div>
+
+      <div class="card output-card" data-phase="pre live">
+        <div class="card-title">Discovery Reports</div>
+        <div class="card-desc">Infrastructure interviews, system inventories.</div>
+        <div class="artifact-list">
+          <div class="artifact-item"><span class="artifact-icon">&#9634;</span> infrastructure-discovery.md</div>
+          <div class="artifact-item"><span class="artifact-icon">&#9634;</span> system-info-collection.md</div>
+        </div>
+        <div class="card-tag">Discovery</div>
+      </div>
+
+      <div class="card output-card" data-phase="live">
+        <div class="card-title">Assessments</div>
+        <div class="card-desc">Scored evaluations, maturity models, gap analysis.</div>
+        <div class="artifact-list">
+          <div class="artifact-item"><span class="artifact-icon">&#9634;</span> app-portfolio-assessment.md</div>
+          <div class="artifact-item"><span class="artifact-icon">&#9634;</span> ocp-readiness.md</div>
+          <div class="artifact-item"><span class="artifact-icon">&#9634;</span> security-posture.md</div>
+        </div>
+        <div class="card-tag">Assessment</div>
+      </div>
+
+      <div class="card output-card" data-phase="live leave">
+        <div class="card-title">Deliverables</div>
+        <div class="card-desc">Customer-facing presentations and reports. The final product.</div>
+        <div class="artifact-list">
+          <div class="artifact-item"><span class="artifact-icon">&#9634;</span> engagement-readout.html</div>
+          <div class="artifact-item"><span class="artifact-icon">&#9634;</span> engagement-readout.pptx</div>
+          <div class="artifact-item"><span class="artifact-icon">&#9634;</span> executive-summary.md</div>
+        </div>
+        <div class="card-tag">Deliverable</div>
+      </div>
+
+      <div class="card" data-phase="pre" style="border-left: 3px solid var(--yellow);">
+        <div class="card-title">Readiness Dashboard</div>
+        <div class="card-desc">
+          Aggregated checklist completion across roles. "3/5 PM items, 1/4 architect items, kickoff not started."
+        </div>
+        <div class="card-tag" style="background: var(--yellow-glow); color: var(--yellow);">Status</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FILE STRUCTURE -->
+  <div class="file-structure">
+    <div class="fs-header">Engagement Directory Structure</div>
+    <div class="fs-body">
+      <div>
+        <div class="fs-col-title">Engagement Workspace</div>
+        <div class="fs-tree">
+          <span class="fs-dir">engagements/&lt;customer&gt;/</span><br>
+          ├── <span class="fs-highlight">CONTEXT.md</span><br>
+          ├── <span class="fs-dir">checklists/</span><br>
+          │&nbsp;&nbsp; ├── pm-checklist.md<br>
+          │&nbsp;&nbsp; ├── architect-checklist.md<br>
+          │&nbsp;&nbsp; ├── consultant-checklist.md<br>
+          │&nbsp;&nbsp; └── kickoff-checklist.md<br>
+          ├── <span class="fs-dir">discovery/</span><br>
+          ├── <span class="fs-dir">assessments/</span><br>
+          └── <span class="fs-dir">deliverables/</span>
+        </div>
+      </div>
+      <div>
+        <div class="fs-col-title">Knowledge Base</div>
+        <div class="fs-tree">
+          <span class="fs-dir">knowledge/</span><br>
+          ├── <span class="fs-dir">checklists/</span><br>
+          │&nbsp;&nbsp; ├── <span class="fs-highlight">pm-template.md</span><br>
+          │&nbsp;&nbsp; ├── <span class="fs-highlight">architect-template.md</span><br>
+          │&nbsp;&nbsp; ├── maturity-model.md<br>
+          │&nbsp;&nbsp; └── infra-discovery.md<br>
+          ├── <span class="fs-dir">solution-patterns/</span><br>
+          │&nbsp;&nbsp; └── rh-solution-patterns.md<br>
+          └── <span class="fs-dir">templates/</span>
+        </div>
+      </div>
+      <div>
+        <div class="fs-col-title">GUI Application</div>
+        <div class="fs-tree">
+          <span class="fs-dir">gui/</span><br>
+          ├── <span class="fs-dir">server/</span><br>
+          │&nbsp;&nbsp; ├── <span class="fs-dir">routes/</span> <span class="fs-file">skills, engagements, execution</span><br>
+          │&nbsp;&nbsp; ├── <span class="fs-dir">services/</span> <span class="fs-file">readers, executor</span><br>
+          │&nbsp;&nbsp; └── <span class="fs-dir">providers/</span> <span class="fs-accent">claude</span>, opencode<br>
+          ├── <span class="fs-dir">src/</span><br>
+          │&nbsp;&nbsp; ├── <span class="fs-dir">components/</span> <span class="fs-file">Layout, Skills, Execution...</span><br>
+          │&nbsp;&nbsp; ├── <span class="fs-dir">hooks/</span> <span class="fs-file">useSkills, useExecution...</span><br>
+          │&nbsp;&nbsp; └── <span class="fs-dir">styles/</span> <span class="fs-file">CSS Modules</span><br>
+          └── <span class="fs-accent">package.json</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let activePhase = null;
+
+  function togglePhase(phase) {
+    if (activePhase === phase) phase = null;
+    activePhase = phase;
+
+    document.body.classList.remove('filter-pre', 'filter-live', 'filter-leave');
+    if (phase) document.body.classList.add('filter-' + phase);
+
+    document.querySelectorAll('.phase-badge').forEach(b => b.classList.remove('active'));
+    if (phase) {
+      const cls = { pre: 'phase-pre', live: 'phase-live', leave: 'phase-leave' };
+      document.querySelector('.' + cls[phase])?.classList.add('active');
+    } else {
+      document.querySelectorAll('.phase-badge').forEach(b => b.classList.add('active'));
+    }
+  }
+
+  // Start with all active
+  document.querySelectorAll('.phase-badge').forEach(b => b.classList.add('active'));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,56 @@
+.loadingText {
+  color: var(--rh-gray-500);
+  font-size: 13px;
+  animation: fadeIn var(--rh-transition);
+}
+
+.actionArea {
+  margin-top: 24px;
+}
+
+.executeButton {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: var(--rh-radius);
+  border: none;
+  background: var(--rh-red);
+  color: var(--rh-white);
+  letter-spacing: 0.3px;
+  transition: all var(--rh-transition-fast);
+}
+
+.executeButton:hover:not(:disabled) {
+  background: var(--rh-red-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--rh-shadow);
+}
+
+.executeButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.executeButtonDisabled {
+  background: var(--rh-gray-200);
+  color: var(--rh-gray-500);
+  cursor: not-allowed;
+}
+
+.viewOutputButton {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: var(--rh-radius);
+  border: 1px solid var(--rh-gray-200);
+  background: var(--rh-white);
+  color: var(--rh-blue);
+  transition: all var(--rh-transition-fast);
+}
+
+.viewOutputButton:hover {
+  background: var(--rh-gray-100);
+  border-color: var(--rh-gray-300);
+}

@@ -10,3 +10,8 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# GUI build artifacts
+node_modules/
+dist/
+.playwright-mcp/

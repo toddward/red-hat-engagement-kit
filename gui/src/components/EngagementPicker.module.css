@@ -1,0 +1,35 @@
+.container {
+  margin-top: 24px;
+}
+
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--rh-gray-500);
+  margin-bottom: 10px;
+}
+
+.select {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: var(--rh-radius);
+  border: 1px solid var(--rh-gray-200);
+  background: var(--rh-white);
+  font-family: var(--rh-font);
+  color: var(--rh-black);
+  transition: border-color var(--rh-transition-fast), box-shadow var(--rh-transition-fast);
+  cursor: pointer;
+}
+
+.select:hover {
+  border-color: var(--rh-gray-300);
+}
+
+.select:focus {
+  border-color: var(--rh-blue);
+  box-shadow: var(--rh-shadow-focus);
+  outline: none;
+}
