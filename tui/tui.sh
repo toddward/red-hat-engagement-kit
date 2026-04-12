@@ -32,7 +32,11 @@ cleanup() {
 trap cleanup EXIT
 
 # Launch bash core: reads commands from FIFO, writes responses to FIFO
-bash "$CORE_DIR/main.sh" < "$FIFO_TO_CORE" > "$FIFO_FROM_CORE" &
+# Open FIFO_TO_CORE with <> (read-write) to avoid FIFO open deadlock.
+# Opening a FIFO read-only blocks until a writer appears, and vice versa.
+# Both processes would deadlock waiting for the other. Read-write opens
+# never block, breaking the cycle.
+bash "$CORE_DIR/main.sh" <> "$FIFO_TO_CORE" > "$FIFO_FROM_CORE" &
 CORE_PID=$!
 
 # Launch viewer: reads responses from core, writes commands to core
