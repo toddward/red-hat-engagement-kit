@@ -5,6 +5,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type Input struct {
@@ -80,13 +81,12 @@ func (i Input) View() string {
 
 	if len(i.options) > 0 {
 		for idx, opt := range i.options {
-			cursor := "  "
-			style := MenuItemStyle
 			if idx == i.cursor {
-				cursor = "> "
-				style = MenuItemSelectedStyle
+				prefix := lipgloss.NewStyle().Foreground(RedHatRed).Bold(true).Render("❯ ")
+				b.WriteString(prefix + MenuItemSelectedStyle.Render(opt))
+			} else {
+				b.WriteString(MenuItemStyle.Render(opt))
 			}
-			b.WriteString(style.Render(cursor + opt))
 			b.WriteString("\n")
 		}
 	} else {

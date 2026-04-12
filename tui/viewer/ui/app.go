@@ -499,6 +499,19 @@ func (a App) View() string {
 
 	content := lipgloss.JoinHorizontal(lipgloss.Top, sidebar, main)
 
+	// Status bar
+	var statusParts []string
+	if a.engagement != "" {
+		statusParts = append(statusParts, StatusBarAccentStyle.Render(" RH "))
+		statusParts = append(statusParts, StatusBarStyle.Render(" "+a.engagement+" "))
+	}
+	statusBar := lipgloss.JoinHorizontal(lipgloss.Top, statusParts...)
+	statusBar = lipgloss.NewStyle().
+		Width(a.width).
+		Background(lipgloss.Color("#1a1a1a")).
+		Render(statusBar)
+	content = content + "\n" + statusBar
+
 	if a.showPalette {
 		paletteView := a.palette.View()
 		x := (a.width - 60) / 2

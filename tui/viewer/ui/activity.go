@@ -20,12 +20,13 @@ type ActivityEntry struct {
 }
 
 type Activity struct {
-	viewport viewport.Model
-	entries  []ActivityEntry
-	width    int
-	height   int
-	running  bool
-	cost     float64
+	viewport  viewport.Model
+	entries   []ActivityEntry
+	width     int
+	height    int
+	running   bool
+	cost      float64
+	skillName string
 }
 
 func NewActivity() Activity {
@@ -47,6 +48,7 @@ func (a *Activity) Clear() {
 	a.entries = make([]ActivityEntry, 0)
 	a.running = false
 	a.cost = 0
+	a.skillName = ""
 	a.updateContent()
 }
 
@@ -123,12 +125,22 @@ func (a Activity) Update(msg tea.Msg) (Activity, tea.Cmd) {
 func (a Activity) View() string {
 	var b strings.Builder
 
-	title := "Execution Log"
+	// Header
 	if a.running {
-		title = StatusRunningStyle.Render("● Running")
+		runLabel := StatusRunningStyle.Render("● Running")
+		var header string
+		if a.skillName != "" {
+			header = runLabel + "  " + lipgloss.NewStyle().Foreground(TextMuted).Render(a.skillName)
+		} else {
+			header = runLabel
+		}
+		b.WriteString(header)
+	} else {
+		b.WriteString(TitleStyle.Render("Execution Log"))
 	}
-	b.WriteString(TitleStyle.Render(title))
 	b.WriteString("\n")
+
+	// Thin #333 divider
 	maxWidth := a.width - 4
 	if maxWidth > 60 {
 		maxWidth = 60
@@ -136,9 +148,7 @@ func (a Activity) View() string {
 	if maxWidth < 1 {
 		maxWidth = 1
 	}
-	b.WriteString(lipgloss.NewStyle().
-		Foreground(RedHatRed).
-		Render(strings.Repeat("━", maxWidth)))
+	b.WriteString(DividerStyle.Render(strings.Repeat("─", maxWidth)))
 	b.WriteString("\n\n")
 
 	b.WriteString(a.viewport.View())

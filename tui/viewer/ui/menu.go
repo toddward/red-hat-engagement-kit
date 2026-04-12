@@ -122,33 +122,36 @@ func (m Menu) View() string {
 		if maxWidth < 1 {
 			maxWidth = 1
 		}
-		b.WriteString(lipgloss.NewStyle().
-			Foreground(RedHatRed).
-			Render(strings.Repeat("━", maxWidth)))
+		b.WriteString(DividerStyle.Render(strings.Repeat("─", maxWidth)))
 		b.WriteString("\n\n")
 	}
 
 	for i, item := range m.items {
-		cursor := "  "
-		style := MenuItemStyle
 		if i == m.cursor {
-			cursor = "> "
-			style = MenuItemSelectedStyle
-		}
+			prefix := lipgloss.NewStyle().Foreground(RedHatRed).Bold(true).Render("❯ ")
+			var label string
+			if item.Key != "" {
+				label = MenuItemSelectedStyle.Render("[" + item.Key + "] " + item.Label)
+			} else {
+				label = MenuItemSelectedStyle.Render(item.Label)
+			}
+			b.WriteString(prefix + label)
 
-		line := cursor + item.Label
-		if item.Key != "" {
-			line = cursor + "[" + item.Key + "] " + item.Label
-		}
-
-		b.WriteString(style.Render(line))
-
-		if item.Description != "" && i == m.cursor {
-			b.WriteString("\n")
-			b.WriteString(lipgloss.NewStyle().
-				Foreground(TextMuted).
-				PaddingLeft(4).
-				Render(item.Description))
+			if item.Description != "" {
+				b.WriteString("\n")
+				b.WriteString(lipgloss.NewStyle().
+					Foreground(TextMuted).
+					PaddingLeft(4).
+					Render(item.Description))
+			}
+		} else {
+			var line string
+			if item.Key != "" {
+				line = "[" + item.Key + "] " + item.Label
+			} else {
+				line = item.Label
+			}
+			b.WriteString(MenuItemStyle.Render(line))
 		}
 		b.WriteString("\n")
 	}

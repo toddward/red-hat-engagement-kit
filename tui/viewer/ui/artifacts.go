@@ -134,7 +134,7 @@ func (b ArtifactBrowser) View() string {
 	if maxWidth > 60 {
 		maxWidth = 60
 	}
-	sb.WriteString(lipgloss.NewStyle().Foreground(RedHatRed).Render(strings.Repeat("━", maxWidth)))
+	sb.WriteString(DividerStyle.Render(strings.Repeat("─", maxWidth)))
 	sb.WriteString("\n\n")
 
 	if b.viewing {
@@ -159,7 +159,7 @@ func (b ArtifactBrowser) View() string {
 
 				var line string
 				if i == b.cursor {
-					cursor := lipgloss.NewStyle().Foreground(RedHatRed).Bold(true).Render("> ")
+					cursor := lipgloss.NewStyle().Foreground(RedHatRed).Bold(true).Render("❯ ")
 					line = indent + cursor + label
 				} else {
 					line = indent + "  " + label

@@ -45,12 +45,22 @@ func (s *Sidebar) SetAgent(name string) {
 func (s Sidebar) View() string {
 	var b strings.Builder
 
-	title := TitleStyle.Render("Red Hat")
-	subtitle := SubtitleStyle.Render("Engagement Kit")
-	b.WriteString(title + "\n")
-	b.WriteString(subtitle + "\n\n")
+	// Brand header
+	b.WriteString(lipgloss.NewStyle().Foreground(RedHatRed).Bold(true).Render("Red Hat"))
+	b.WriteString("\n")
+	b.WriteString(lipgloss.NewStyle().Foreground(TextDim).Render("Engagement Kit"))
+	b.WriteString("\n")
 
-	b.WriteString(MenuHeaderStyle.Render("ENGAGEMENT"))
+	// Thin divider
+	divWidth := s.width - 4
+	if divWidth < 1 {
+		divWidth = 1
+	}
+	b.WriteString(DividerStyle.Render(strings.Repeat("─", divWidth)))
+	b.WriteString("\n\n")
+
+	// Engagement section
+	b.WriteString(lipgloss.NewStyle().Foreground(TextDim).Render("ENGAGEMENT"))
 	b.WriteString("\n")
 	if s.engagement != "" {
 		b.WriteString(lipgloss.NewStyle().Foreground(TextPrimary).Render(s.engagement))
@@ -75,18 +85,28 @@ func (s Sidebar) View() string {
 	b.WriteString("\n")
 
 	if s.agent != "" {
-		b.WriteString(MenuHeaderStyle.Render("AGENT"))
+		b.WriteString(DividerStyle.Render(strings.Repeat("─", divWidth)))
+		b.WriteString("\n\n")
+		b.WriteString(lipgloss.NewStyle().Foreground(TextDim).Render("AGENT"))
 		b.WriteString("\n")
 		b.WriteString(StatusRunningStyle.Render("● " + s.agent))
 		b.WriteString("\n\n")
 	}
 
 	if s.engagement != "" {
-		b.WriteString(MenuHeaderStyle.Render("ARTIFACTS"))
+		b.WriteString(DividerStyle.Render(strings.Repeat("─", divWidth)))
+		b.WriteString("\n\n")
+		b.WriteString(lipgloss.NewStyle().Foreground(TextDim).Render("ARTIFACTS"))
 		b.WriteString("\n")
-		b.WriteString(fmt.Sprintf("Discovery:    %d\n", s.counts.Discovery))
-		b.WriteString(fmt.Sprintf("Assessments:  %d\n", s.counts.Assessments))
-		b.WriteString(fmt.Sprintf("Deliverables: %d\n", s.counts.Deliverables))
+		b.WriteString(lipgloss.NewStyle().Foreground(TextMuted).Render("Discovery    ") +
+			lipgloss.NewStyle().Foreground(TextPrimary).Render(fmt.Sprintf("%d", s.counts.Discovery)))
+		b.WriteString("\n")
+		b.WriteString(lipgloss.NewStyle().Foreground(TextMuted).Render("Assessments  ") +
+			lipgloss.NewStyle().Foreground(TextPrimary).Render(fmt.Sprintf("%d", s.counts.Assessments)))
+		b.WriteString("\n")
+		b.WriteString(lipgloss.NewStyle().Foreground(TextMuted).Render("Deliverables ") +
+			lipgloss.NewStyle().Foreground(TextPrimary).Render(fmt.Sprintf("%d", s.counts.Deliverables)))
+		b.WriteString("\n")
 	}
 
 	return SidebarStyle.Height(s.height).Render(b.String())

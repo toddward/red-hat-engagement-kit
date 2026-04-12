@@ -159,7 +159,7 @@ func (c ChecklistBrowser) View() string {
 	if maxWidth > 60 {
 		maxWidth = 60
 	}
-	sb.WriteString(lipgloss.NewStyle().Foreground(RedHatRed).Render(strings.Repeat("━", maxWidth)))
+	sb.WriteString(DividerStyle.Render(strings.Repeat("─", maxWidth)))
 	sb.WriteString("\n\n")
 
 	if c.viewing {
@@ -178,7 +178,7 @@ func (c *ChecklistBrowser) renderList(sb *strings.Builder) {
 	} else {
 		for i, name := range c.names {
 			if i == c.listCursor {
-				cursor := lipgloss.NewStyle().Foreground(RedHatRed).Bold(true).Render("> ")
+				cursor := lipgloss.NewStyle().Foreground(RedHatRed).Bold(true).Render("❯ ")
 				sb.WriteString(cursor + lipgloss.NewStyle().Foreground(TextPrimary).Bold(true).Render(name))
 			} else {
 				sb.WriteString("  " + lipgloss.NewStyle().Foreground(TextPrimary).Render(name))
@@ -228,7 +228,7 @@ func (c *ChecklistBrowser) renderDetail(sb *strings.Builder) {
 		text := itemStyle.Render(checkbox + " " + item.Text)
 
 		if i == c.cursor {
-			cursor := lipgloss.NewStyle().Foreground(RedHatRed).Bold(true).Render("> ")
+			cursor := lipgloss.NewStyle().Foreground(RedHatRed).Bold(true).Render("❯ ")
 			sb.WriteString("  " + cursor + text)
 		} else {
 			sb.WriteString("    " + text)

@@ -16,6 +16,7 @@ var (
 	Green         = lipgloss.Color("#3E8635")
 	Yellow        = lipgloss.Color("#F0AB00")
 	Blue          = lipgloss.Color("#0066CC")
+	DividerColor  = lipgloss.Color("#333333")
 )
 
 var (
@@ -23,22 +24,21 @@ var (
 
 	SidebarStyle = lipgloss.NewStyle().
 			Width(SidebarWidth).
-			Padding(1, 2).
-			BorderRight(true).
-			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(RedHatRed)
+			Padding(1, 2)
 
 	MainStyle = lipgloss.NewStyle().
 			Padding(1, 2)
 
 	TitleStyle = lipgloss.NewStyle().
 			Foreground(RedHatRed).
-			Bold(true).
-			MarginBottom(1)
+			Bold(true)
 
 	SubtitleStyle = lipgloss.NewStyle().
 			Foreground(TextMuted).
 			Italic(true)
+
+	DividerStyle = lipgloss.NewStyle().
+			Foreground(DividerColor)
 )
 
 var (
@@ -49,7 +49,7 @@ var (
 	MenuItemSelectedStyle = lipgloss.NewStyle().
 				Foreground(RedHatRed).
 				Bold(true).
-				PaddingLeft(2)
+				PaddingLeft(0)
 
 	MenuHeaderStyle = lipgloss.NewStyle().
 			Foreground(TextMuted).
@@ -151,4 +151,17 @@ var (
 	ChecklistCheckedStyle   = lipgloss.NewStyle().Foreground(Green)
 	ChecklistUncheckedStyle = lipgloss.NewStyle().Foreground(TextMuted)
 	ChecklistProgressStyle  = lipgloss.NewStyle().Foreground(Yellow)
+)
+
+var (
+	StatusBarStyle = lipgloss.NewStyle().
+			Foreground(TextMuted).
+			Background(lipgloss.Color("#1a1a1a")).
+			Padding(0, 1)
+
+	StatusBarAccentStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#ffffff")).
+				Background(RedHatRed).
+				Bold(true).
+				Padding(0, 1)
 )
