@@ -52,3 +52,44 @@ export interface ApprovalEvent {
 }
 
 export type ExecutionStatus = "idle" | "running" | "waiting" | "done" | "error";
+
+export type EngagementPhase = "pre-engagement" | "live" | "leave-behind";
+
+export interface PhaseInfo {
+  phase: EngagementPhase;
+  hasContext: boolean;
+  hasDeliverables: boolean;
+  artifactCounts: {
+    discovery: number;
+    assessments: number;
+    deliverables: number;
+    checklists: number;
+  };
+}
+
+export interface ArtifactNode {
+  name: string;
+  path: string;
+  type: "file" | "directory";
+  children?: ArtifactNode[];
+}
+
+export interface ChecklistItem {
+  text: string;
+  checked: boolean;
+  line: number;
+}
+
+export interface ChecklistSection {
+  title: string;
+  items: ChecklistItem[];
+}
+
+export interface Checklist {
+  name: string;
+  fileName: string;
+  sections: ChecklistSection[];
+  completionPercent: number;
+}
+
+export type AppView = "detail" | "execution" | "artifacts" | "checklists" | "assistant";

@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import StreamOutput from "./StreamOutput";
+import TypingIndicator from "./TypingIndicator";
 import type { StreamMessage, ExecutionStatus } from "../types";
 import styles from "./ExecutionPanel.module.css";
 
@@ -53,7 +54,10 @@ export default function ExecutionPanel({
             Select skills and click Execute to begin.
           </div>
         ) : (
-          <StreamOutput messages={messages} />
+          <>
+            <StreamOutput messages={messages} />
+            {status === "running" && <TypingIndicator />}
+          </>
         )}
       </div>
 

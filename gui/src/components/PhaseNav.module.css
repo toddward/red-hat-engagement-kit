@@ -1,0 +1,109 @@
+.container {
+  margin-top: 20px;
+}
+
+.phaseBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--rh-radius);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 12px;
+}
+
+.phasePre {
+  background: var(--rh-blue-light);
+  color: var(--rh-blue);
+  border: 1px solid rgba(0, 102, 204, 0.2);
+}
+
+.phaseLive {
+  background: var(--rh-red-light);
+  color: var(--rh-red);
+  border: 1px solid rgba(238, 0, 0, 0.2);
+}
+
+.phaseLeave {
+  background: var(--rh-green-light);
+  color: var(--rh-green);
+  border: 1px solid rgba(62, 134, 53, 0.2);
+}
+
+.phaseDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--rh-radius);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  background: none;
+  color: var(--rh-gray-700);
+  cursor: pointer;
+  transition: all var(--rh-transition-fast);
+  text-align: left;
+  width: 100%;
+}
+
+.navItem:hover {
+  background: var(--rh-gray-100);
+  color: var(--rh-black);
+}
+
+.navItemActive {
+  background: var(--rh-blue-light);
+  color: var(--rh-blue);
+  font-weight: 600;
+}
+
+.navItemActive:hover {
+  background: var(--rh-blue-light);
+}
+
+.navItemDimmed {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.navItemDimmed:hover {
+  background: none;
+  color: var(--rh-gray-700);
+}
+
+.navIcon {
+  width: 18px;
+  text-align: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.navLabel {
+  flex: 1;
+}
+
+.navCount {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: var(--rh-gray-100);
+  color: var(--rh-gray-500);
+}

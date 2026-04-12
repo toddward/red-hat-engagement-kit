@@ -1,0 +1,216 @@
+.container {
+  padding: 32px 40px;
+  max-width: 900px;
+  animation: fadeIn var(--rh-transition);
+}
+
+.header {
+  margin-bottom: 28px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--rh-gray-500);
+}
+
+/* Readiness summary */
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--rh-white);
+  border: 1px solid var(--rh-gray-200);
+  border-radius: var(--rh-radius);
+  margin-bottom: 24px;
+}
+
+.summaryLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rh-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.progressTrack {
+  flex: 1;
+  height: 8px;
+  background: var(--rh-gray-200);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.summaryPercent {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--rh-font-mono);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Checklist card */
+.checklistCard {
+  background: var(--rh-white);
+  border: 1px solid var(--rh-gray-200);
+  border-radius: var(--rh-radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: box-shadow var(--rh-transition-fast);
+}
+
+.checklistCard:hover {
+  box-shadow: var(--rh-shadow-sm);
+}
+
+.checklistHeader {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--rh-transition-fast);
+}
+
+.checklistHeader:hover {
+  background: var(--rh-gray-100);
+}
+
+.checklistName {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checklistChevron {
+  color: var(--rh-gray-500);
+  font-size: 12px;
+  transition: transform var(--rh-transition-fast);
+}
+
+.checklistChevronOpen {
+  transform: rotate(90deg);
+}
+
+.checklistMiniBar {
+  width: 60px;
+  height: 4px;
+  background: var(--rh-gray-200);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-left: auto;
+  margin-right: 12px;
+}
+
+.checklistMiniBarFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.checklistBody {
+  padding: 0 16px 16px;
+}
+
+/* Section */
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--rh-gray-500);
+  padding: 12px 0 6px;
+  border-bottom: 1px solid var(--rh-gray-100);
+  margin-bottom: 4px;
+}
+
+/* Checklist items */
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background var(--rh-transition-fast);
+}
+
+.item:hover {
+  background: var(--rh-gray-100);
+}
+
+.itemCheckbox {
+  margin-top: 2px;
+  accent-color: var(--rh-green);
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
+.itemText {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--rh-black);
+  transition: all var(--rh-transition-fast);
+}
+
+.itemTextChecked {
+  text-decoration: line-through;
+  color: var(--rh-gray-500);
+}
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  animation: fadeIn var(--rh-transition);
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--rh-gray-700);
+}
+
+.emptyDesc {
+  font-size: 13px;
+  color: var(--rh-gray-500);
+  margin-bottom: 20px;
+}
+
+.instantiateButton {
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--rh-radius);
+  border: none;
+  background: var(--rh-red);
+  color: var(--rh-white);
+  transition: all var(--rh-transition-fast);
+}
+
+.instantiateButton:hover {
+  background: var(--rh-red-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--rh-shadow);
+}
+
+.instantiateButton:active {
+  transform: translateY(0);
+}

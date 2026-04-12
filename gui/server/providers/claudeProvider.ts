@@ -4,6 +4,10 @@ import type { ExecutionSession } from "./types.js";
 
 const PROJECT_ROOT = path.resolve(import.meta.dirname, "../../..");
 
+function getSessionMeta(session: ExecutionSession) {
+  return session as unknown as Record<string, unknown>;
+}
+
 export function startClaudeSession(
   session: ExecutionSession,
   emitSSE: (event: string, data: Record<string, unknown>) => void
@@ -14,7 +18,31 @@ export function startClaudeSession(
     : "";
 
   const prompt = `Run ${skillList}.${engagementCtx}`;
+  runClaudeProcess(session, emitSSE, [prompt]);
+}
 
+export function resumeClaudeSession(
+  session: ExecutionSession,
+  emitSSE: (event: string, data: Record<string, unknown>) => void,
+  message: string
+): void {
+  const claudeSessionId = getSessionMeta(session).claudeSessionId as string;
+  if (!claudeSessionId) {
+    emitSSE("error", { text: "No session to resume" });
+    return;
+  }
+  runClaudeProcess(session, emitSSE, [
+    "--resume",
+    claudeSessionId,
+    message,
+  ]);
+}
+
+function runClaudeProcess(
+  session: ExecutionSession,
+  emitSSE: (event: string, data: Record<string, unknown>) => void,
+  extraArgs: string[]
+): void {
   const args = [
     "--print",
     "--output-format",
@@ -22,11 +50,10 @@ export function startClaudeSession(
     "--verbose",
     "--permission-mode",
     "acceptEdits",
-    prompt,
+    ...extraArgs,
   ];
 
   console.log(`[claude] spawning: claude ${args.join(" ")}`);
-  console.log(`[claude] cwd: ${PROJECT_ROOT}`);
 
   let proc: ChildProcess;
 
@@ -44,19 +71,22 @@ export function startClaudeSession(
     return;
   }
 
+  session.status = "running";
+
   session.abort = () => {
     proc.kill("SIGTERM");
     session.status = "completed";
   };
 
+  // Track whether Claude asked a question this turn
+  const meta = getSessionMeta(session);
+  meta._askedQuestion = false;
+  meta._lastResultText = "";
+  meta._totalCost = (meta._totalCost as number) ?? 0;
+
   session.sendFollowUp = (message: string) => {
-    if (proc.stdin && !proc.stdin.destroyed) {
-      const msg = JSON.stringify({
-        type: "user_message",
-        content: message,
-      });
-      proc.stdin.write(msg + "\n");
-    }
+    // The process already exited — need to resume with a new process
+    resumeClaudeSession(session, emitSSE, message);
   };
 
   let buffer = "";
@@ -72,7 +102,6 @@ export function startClaudeSession(
         const msg = JSON.parse(line);
         handleStreamMessage(msg, session, emitSSE);
       } catch {
-        // Non-JSON output, treat as raw text
         emitSSE("assistant", { text: line });
       }
     }
@@ -82,10 +111,9 @@ export function startClaudeSession(
     const text = chunk.toString().trim();
     if (text) {
       console.error(`[claude stderr] ${text}`);
-      // Surface errors to the frontend
       if (
-        text.toLowerCase().includes("error") ||
-        text.toLowerCase().includes("fatal")
+        text.toLowerCase().includes("error") &&
+        !text.toLowerCase().includes("warning")
       ) {
         emitSSE("error", { text });
       }
@@ -106,11 +134,21 @@ export function startClaudeSession(
       }
     }
 
+    // If Claude asked a question, don't emit result — wait for user input
+    if (meta._askedQuestion && code === 0) {
+      session.status = "waiting_input";
+      meta._askedQuestion = false; // Reset for next turn
+      emitSSE("waiting", { message: "Waiting for your response..." });
+      console.log("[claude] session waiting for user input (question asked)");
+      return;
+    }
+
     if (session.status === "running") {
       session.status = "completed";
       emitSSE("result", {
         status: code === 0 ? "success" : "error",
         exitCode: code,
+        cost: meta._totalCost as number,
       });
     }
   });
@@ -128,6 +166,7 @@ function handleStreamMessage(
   emitSSE: (event: string, data: Record<string, unknown>) => void
 ): void {
   const type = msg.type as string;
+  const meta = getSessionMeta(session);
 
   switch (type) {
     case "assistant": {
@@ -143,7 +182,12 @@ function handleStreamMessage(
         for (const block of message.content) {
           if (block.type === "text" && block.text) {
             emitSSE("assistant", { text: block.text });
+            meta._lastResultText = block.text;
           } else if (block.type === "tool_use") {
+            // Track if AskUserQuestion was used
+            if (block.name === "AskUserQuestion") {
+              meta._askedQuestion = true;
+            }
             emitSSE("tool_use", {
               tool: block.name,
               input:
@@ -157,20 +201,51 @@ function handleStreamMessage(
       break;
     }
 
-    case "tool_result":
     case "result": {
-      // Check if this is a final result message (has total_cost_usd)
       if (msg.total_cost_usd != null) {
-        session.status = "completed";
-        emitSSE("result", {
-          status: (msg.subtype as string) ?? "success",
-          cost: msg.total_cost_usd as number,
-          result: msg.result as string,
-        });
+        meta._totalCost =
+          ((meta._totalCost as number) ?? 0) +
+          (msg.total_cost_usd as number);
+
+        // Check if the result text ends with a question — Claude is waiting
+        const resultText = (msg.result as string) ?? "";
+        if (resultText.trim().endsWith("?")) {
+          meta._askedQuestion = true;
+        }
+
+        // Don't emit result event here — let the close handler decide
+        // based on whether a question was asked
+        if (meta._askedQuestion) {
+          console.log("[claude] detected question in result, will wait for input");
+        } else {
+          session.status = "completed";
+          emitSSE("result", {
+            status: (msg.subtype as string) ?? "success",
+            cost: meta._totalCost as number,
+            result: resultText,
+          });
+        }
         break;
       }
 
-      // Otherwise it's a tool result
+      // Tool result message
+      const message = msg.message as {
+        content?: Array<{ type: string; text?: string }>;
+      };
+      const toolName = (msg.tool_name as string) ?? "unknown";
+      if (message?.content) {
+        const text = message.content
+          .filter((b) => b.type === "text")
+          .map((b) => b.text)
+          .join("\n");
+        if (text) {
+          emitSSE("tool_result", { tool: toolName, output: text });
+        }
+      }
+      break;
+    }
+
+    case "tool_result": {
       const message = msg.message as {
         content?: Array<{ type: string; text?: string }>;
       };
@@ -190,14 +265,13 @@ function handleStreamMessage(
     case "system": {
       const sessionId = msg.session_id as string;
       if (sessionId) {
-        (session as unknown as Record<string, unknown>).claudeSessionId =
-          sessionId;
+        meta.claudeSessionId = sessionId;
+        console.log(`[claude] session ID: ${sessionId}`);
       }
       break;
     }
 
     case "rate_limit_event":
-      // Ignore rate limit events
       break;
 
     default:

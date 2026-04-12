@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import redhatLogo from "../assets/redhat-logo.svg";
 import styles from "./Layout.module.css";
 
 interface LayoutProps {
@@ -11,7 +12,8 @@ export default function Layout({ sidebar, main }: LayoutProps) {
     <div className={styles.container}>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <h1 className={styles.sidebarTitle}>Red Hat Engagement Kit</h1>
+          <img src={redhatLogo} alt="Red Hat" className={styles.logo} />
+          <h1 className={styles.sidebarTitle}>Engagement Kit</h1>
         </div>
         <div className={styles.sidebarContent}>{sidebar}</div>
       </aside>

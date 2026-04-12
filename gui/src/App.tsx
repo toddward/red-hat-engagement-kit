@@ -4,16 +4,22 @@ import SkillList from "./components/SkillList";
 import SkillDetail from "./components/SkillDetail";
 import EngagementPicker from "./components/EngagementPicker";
 import ExecutionPanel from "./components/ExecutionPanel";
+import PhaseNav from "./components/PhaseNav";
+import ArtifactBrowser from "./components/ArtifactBrowser";
+import ChecklistView from "./components/ChecklistView";
+import AssistantPanel from "./components/AssistantPanel";
 import { useSkills } from "./hooks/useSkills";
 import { useEngagements } from "./hooks/useEngagements";
 import { useExecution } from "./hooks/useExecution";
-import type { SkillDetail as SkillDetailType } from "./types";
+import { usePhase } from "./hooks/usePhase";
+import type { SkillDetail as SkillDetailType, AppView } from "./types";
 import styles from "./App.module.css";
 
 export default function App() {
   const { skills, loading: skillsLoading } = useSkills();
   const { engagements, loading: engagementsLoading } = useEngagements();
   const execution = useExecution();
+  const { getSkillDetail } = useSkills();
 
   const [selectedSkills, setSelectedSkills] = useState<Set<string>>(new Set());
   const [selectedEngagement, setSelectedEngagement] = useState<string | null>(
@@ -23,8 +29,25 @@ export default function App() {
   const [skillContent, setSkillContent] = useState<SkillDetailType | null>(
     null
   );
-  const [view, setView] = useState<"detail" | "execution">("detail");
-  const { getSkillDetail } = useSkills();
+  const [view, setView] = useState<AppView>("detail");
+
+  const { phase: phaseInfo } = usePhase(selectedEngagement);
+
+  // Auto-set default view when phase changes
+  useEffect(() => {
+    if (!phaseInfo) return;
+    switch (phaseInfo.phase) {
+      case "pre-engagement":
+        setView("detail");
+        break;
+      case "live":
+        setView("detail");
+        break;
+      case "leave-behind":
+        setView("artifacts");
+        break;
+    }
+  }, [phaseInfo?.phase, selectedEngagement]);
 
   useEffect(() => {
     if (!viewingSkill) {
@@ -89,6 +112,15 @@ export default function App() {
         />
       )}
 
+      {selectedEngagement && phaseInfo && (
+        <PhaseNav
+          phase={phaseInfo.phase}
+          currentView={view}
+          onNavigate={setView}
+          artifactCounts={phaseInfo.artifactCounts}
+        />
+      )}
+
       <div className={styles.actionArea}>
         <button
           onClick={handleExecute}
@@ -100,7 +132,7 @@ export default function App() {
             : `Execute ${selectedSkills.size > 0 ? `(${selectedSkills.size})` : ""}`}
         </button>
 
-        {execution.status !== "idle" && view === "detail" && (
+        {execution.status !== "idle" && view !== "execution" && (
           <button
             onClick={() => setView("execution")}
             className={styles.viewOutputButton}
@@ -112,20 +144,42 @@ export default function App() {
     </>
   );
 
-  const main =
-    view === "execution" ? (
-      <ExecutionPanel
-        messages={execution.messages}
-        status={execution.status}
-        onSendFollowUp={execution.sendFollowUp}
-        onReset={() => {
-          execution.reset();
-          setView("detail");
-        }}
-      />
-    ) : skillContent ? (
-      <SkillDetail name={skillContent.name} content={skillContent.content} />
-    ) : null;
+  const main = (() => {
+    switch (view) {
+      case "execution":
+        return (
+          <ExecutionPanel
+            messages={execution.messages}
+            status={execution.status}
+            onSendFollowUp={execution.sendFollowUp}
+            onReset={() => {
+              execution.reset();
+              setView("detail");
+            }}
+          />
+        );
+      case "artifacts":
+        return selectedEngagement ? (
+          <ArtifactBrowser slug={selectedEngagement} />
+        ) : null;
+      case "checklists":
+        return selectedEngagement ? (
+          <ChecklistView slug={selectedEngagement} />
+        ) : null;
+      case "assistant":
+        return selectedEngagement ? (
+          <AssistantPanel slug={selectedEngagement} />
+        ) : null;
+      case "detail":
+      default:
+        return skillContent ? (
+          <SkillDetail
+            name={skillContent.name}
+            content={skillContent.content}
+          />
+        ) : null;
+    }
+  })();
 
   return <Layout sidebar={sidebar} main={main} />;
 }

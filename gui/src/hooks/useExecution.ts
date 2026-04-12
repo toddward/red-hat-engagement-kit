@@ -74,6 +74,10 @@ export function useExecution() {
         addMessage({ type: "skill_complete", skill: data.skill });
       });
 
+      es.addEventListener("waiting", () => {
+        setStatus("waiting");
+      });
+
       es.addEventListener("result", (e) => {
         const data = JSON.parse(e.data);
         addMessage({ type: "result", status: data.status, cost: data.cost });

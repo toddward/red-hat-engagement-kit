@@ -1,0 +1,120 @@
+.container {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+  animation: fadeIn var(--rh-transition);
+}
+
+.treePanel {
+  width: 260px;
+  min-width: 260px;
+  border-right: 1px solid var(--rh-gray-200);
+  background: var(--rh-white);
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.treePanel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.treePanel::-webkit-scrollbar-thumb {
+  background: var(--rh-gray-200);
+  border-radius: 3px;
+}
+
+.treePanelHeader {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--rh-gray-500);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rh-gray-200);
+}
+
+.contentPanel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 40px;
+  max-width: 900px;
+}
+
+.emptyContent {
+  color: var(--rh-gray-300);
+  font-size: 14px;
+  text-align: center;
+  margin-top: 80px;
+  animation: fadeIn var(--rh-transition);
+}
+
+/* File tree nodes */
+.treeNode {
+  user-select: none;
+}
+
+.treeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all var(--rh-transition-fast);
+  color: var(--rh-gray-700);
+}
+
+.treeRow:hover {
+  background: var(--rh-gray-100);
+  color: var(--rh-black);
+}
+
+.treeRowActive {
+  background: var(--rh-blue-light);
+  color: var(--rh-blue);
+  font-weight: 600;
+}
+
+.treeRowActive:hover {
+  background: var(--rh-blue-light);
+}
+
+.treeIcon {
+  font-size: 12px;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.treeName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treeChildren {
+  padding-left: 16px;
+  border-left: 1px solid var(--rh-gray-200);
+  margin-left: 11px;
+}
+
+/* Content header */
+.contentHeader {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--rh-gray-500);
+  margin-bottom: 8px;
+}
+
+.contentTitle {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--rh-font-mono);
+  margin-bottom: 24px;
+  color: var(--rh-black);
+}
