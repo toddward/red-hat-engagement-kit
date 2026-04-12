@@ -8,22 +8,32 @@ AGENTS_DIR="$PROJECT_ROOT/.claude/agents"
 
 _extract_frontmatter_field() {
     local file="$1" field="$2"
-    sed -n '/^---$/,/^---$/p' "$file" | grep -E "^${field}:" | sed "s/^${field}:[[:space:]]*//" | tr -d '\n'
+    local frontmatter
+    frontmatter=$(sed -n '/^---$/,/^---$/p' "$file")
+
+    local first_line
+    first_line=$(echo "$frontmatter" | grep -E "^${field}:" | sed "s/^${field}:[[:space:]]*//" | tr -d '\n')
+
+    if [[ "$first_line" == ">" || "$first_line" == "|" || -z "$first_line" ]]; then
+        echo "$frontmatter" | sed -n "/^${field}:/,/^[^ ]/p" | tail -n +2 | grep -E '^  ' | sed 's/^  //' | tr '\n' ' ' | sed 's/[[:space:]]*$//'
+    else
+        echo "$first_line"
+    fi
 }
 
 list_agents() {
     local agents="[]"
     [[ ! -d "$AGENTS_DIR" ]] && { echo "$agents"; return; }
 
-    for file in "$AGENTS_DIR"/*.md; do
+    # Check both patterns: agents/*.md and agents/*/AGENT.md
+    for agent_dir in "$AGENTS_DIR"/*/; do
+        [[ -d "$agent_dir" ]] || continue
+        local file="$agent_dir/AGENT.md"
         [[ -f "$file" ]] || continue
-        local filename
-        filename=$(basename "$file")
-        [[ "$filename" == "README.md" ]] && continue
 
         local name
         name=$(_extract_frontmatter_field "$file" "name")
-        [[ -z "$name" ]] && name="${filename%.md}"
+        [[ -z "$name" ]] && name=$(basename "$agent_dir")
         local model
         model=$(_extract_frontmatter_field "$file" "model")
         local role
@@ -39,7 +49,9 @@ list_agents() {
 
 get_agent() {
     local name="$1"
-    local file="$AGENTS_DIR/$name.md"
+    # Check subdirectory pattern first (agents/<name>/AGENT.md), then flat (agents/<name>.md)
+    local file="$AGENTS_DIR/$name/AGENT.md"
+    [[ ! -f "$file" ]] && file="$AGENTS_DIR/$name.md"
     [[ ! -f "$file" ]] && { echo "null"; return; }
 
     local model role description content

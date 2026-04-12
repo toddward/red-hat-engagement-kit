@@ -9,7 +9,19 @@ SKILLS_DIR="$PROJECT_ROOT/.claude/skills"
 
 _extract_description() {
     local file="$1"
-    sed -n '/^---$/,/^---$/p' "$file" | grep -E '^description:' | sed 's/^description:[[:space:]]*//' | tr -d '\n'
+    local frontmatter
+    frontmatter=$(sed -n '/^---$/,/^---$/p' "$file")
+
+    # Check if description is single-line or multi-line (YAML > or |)
+    local first_line
+    first_line=$(echo "$frontmatter" | grep -E '^description:' | sed 's/^description:[[:space:]]*//')
+
+    if [[ "$first_line" == ">" || "$first_line" == "|" || -z "$first_line" ]]; then
+        # Multi-line: grab indented lines after 'description:'
+        echo "$frontmatter" | sed -n '/^description:/,/^[^ ]/p' | tail -n +2 | grep -E '^  ' | sed 's/^  //' | tr '\n' ' ' | sed 's/[[:space:]]*$//'
+    else
+        echo "$first_line"
+    fi
 }
 
 list_skills() {

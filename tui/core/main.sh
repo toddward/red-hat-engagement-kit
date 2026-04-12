@@ -2,17 +2,17 @@
 # main.sh - Main event loop for TUI core
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CORE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-source "$SCRIPT_DIR/protocol.sh"
-source "$SCRIPT_DIR/lib/state.sh"
-source "$SCRIPT_DIR/lib/skills.sh"
-source "$SCRIPT_DIR/lib/engagements.sh"
-source "$SCRIPT_DIR/lib/phase.sh"
-source "$SCRIPT_DIR/lib/artifacts.sh"
-source "$SCRIPT_DIR/lib/checklists.sh"
-source "$SCRIPT_DIR/lib/agents.sh"
-source "$SCRIPT_DIR/lib/claude.sh"
+source "$CORE_DIR/protocol.sh"
+source "$CORE_DIR/lib/state.sh"
+source "$CORE_DIR/lib/skills.sh"
+source "$CORE_DIR/lib/engagements.sh"
+source "$CORE_DIR/lib/phase.sh"
+source "$CORE_DIR/lib/artifacts.sh"
+source "$CORE_DIR/lib/checklists.sh"
+source "$CORE_DIR/lib/agents.sh"
+source "$CORE_DIR/lib/claude.sh"
 
 handle_command() {
     local message="$1"
