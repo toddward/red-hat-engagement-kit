@@ -43,6 +43,7 @@ type App struct {
 
 	currentView ViewType
 	showPalette bool
+	showHelp    bool
 	engagement  string
 	skills      []protocol.Skill
 	engagements []protocol.Engagement
@@ -151,6 +152,11 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if a.currentView == ViewMenu && !a.showPalette {
 				return a, tea.Quit
 			}
+		case "?":
+			if !a.showPalette {
+				a.showHelp = !a.showHelp
+				return a, nil
+			}
 		case "/":
 			if !a.showPalette {
 				a.showPalette = true
@@ -158,6 +164,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return a, nil
 			}
 		case "esc":
+			if a.showHelp {
+				a.showHelp = false
+				return a, nil
+			}
 			if a.showPalette {
 				a.showPalette = false
 				a.palette.Close()
@@ -494,6 +504,16 @@ func (a App) View() string {
 		x := (a.width - 60) / 2
 		y := 5
 		content = placeOverlay(x, y, paletteView, content)
+	}
+
+	if a.showHelp {
+		helpView := HelpView()
+		x := (a.width - 50) / 2
+		if x < 0 {
+			x = 0
+		}
+		y := 3
+		content = placeOverlay(x, y, helpView, content)
 	}
 
 	return content
