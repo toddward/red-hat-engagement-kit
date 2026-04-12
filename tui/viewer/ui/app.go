@@ -151,6 +151,12 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				a.palette.Close()
 				return a, nil
 			}
+			if a.currentView == ViewMenu {
+				if a.menu.PopMenu() {
+					return a, nil
+				}
+				return a, nil
+			}
 			if a.currentView != ViewMenu {
 				a.currentView = ViewMenu
 				return a, nil
@@ -227,7 +233,7 @@ func (a *App) handleAction(action string) (tea.Model, tea.Cmd) {
 				Action:      "run_skill:" + s.Name,
 			}
 		}
-		a.menu = NewMenu("Skills", items)
+		a.menu.PushMenu("Skills", items)
 	case "show_agents":
 		items := make([]MenuItem, len(a.agents))
 		for i, ag := range a.agents {
@@ -237,7 +243,7 @@ func (a *App) handleAction(action string) (tea.Model, tea.Cmd) {
 				Action:      "run_agent:" + ag.Name,
 			}
 		}
-		a.menu = NewMenu("Agents", items)
+		a.menu.PushMenu("Agents", items)
 	case "show_engagements":
 		items := make([]MenuItem, len(a.engagements))
 		for i, e := range a.engagements {
@@ -254,7 +260,7 @@ func (a *App) handleAction(action string) (tea.Model, tea.Cmd) {
 			Label:  "Create new engagement",
 			Action: "run_skill:setup",
 		})
-		a.menu = NewMenu("Engagements", items)
+		a.menu.PushMenu("Engagements", items)
 	case "show_artifacts":
 		cmds = append(cmds, a.sendCommand("list_artifacts", map[string]string{"engagement": a.engagement}))
 	case "show_checklists":
@@ -262,16 +268,11 @@ func (a *App) handleAction(action string) (tea.Model, tea.Cmd) {
 	case "select_engagement":
 		a.engagement = actionArg
 		a.sidebar.SetEngagement(actionArg)
+		// Pop back to root menu
+		for a.menu.PopMenu() {
+		}
 		cmds = append(cmds, a.sendCommand("get_phase", map[string]string{"engagement": actionArg}))
 		cmds = append(cmds, a.sendCommand("set_state", map[string]string{"key": "lastEngagement", "value": actionArg}))
-		// Return to main menu
-		a.menu = NewMenu("Red Hat Engagement Kit", []MenuItem{
-			{Key: "1", Label: "Skills", Action: "show_skills"},
-			{Key: "2", Label: "Agents", Action: "show_agents"},
-			{Key: "3", Label: "Engagements", Action: "show_engagements"},
-			{Key: "4", Label: "Artifacts", Action: "show_artifacts"},
-			{Key: "5", Label: "Checklists", Action: "show_checklists"},
-		})
 	case "run_skill":
 		a.activity.Clear()
 		a.activity.SetRunning(true)

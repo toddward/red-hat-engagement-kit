@@ -15,13 +15,19 @@ type MenuItem struct {
 	Children    []MenuItem
 }
 
-type Menu struct {
+type MenuState struct {
+	title  string
 	items  []MenuItem
 	cursor int
-	parent *Menu
-	title  string
-	width  int
-	height int
+}
+
+type Menu struct {
+	items   []MenuItem
+	cursor  int
+	title   string
+	width   int
+	height  int
+	history []MenuState
 }
 
 func NewMenu(title string, items []MenuItem) Menu {
@@ -48,6 +54,38 @@ func (m Menu) Selected() *MenuItem {
 		return nil
 	}
 	return &m.items[m.cursor]
+}
+
+func (m *Menu) PushMenu(title string, items []MenuItem) {
+	prev := MenuState{
+		title:  m.title,
+		items:  m.items,
+		cursor: m.cursor,
+	}
+	m.history = append(m.history, prev)
+	m.title = title
+	m.items = items
+	m.cursor = 0
+}
+
+func (m *Menu) PopMenu() bool {
+	if len(m.history) == 0 {
+		return false
+	}
+	prev := m.history[len(m.history)-1]
+	m.history = m.history[:len(m.history)-1]
+	m.title = prev.title
+	m.items = prev.items
+	m.cursor = prev.cursor
+	return true
+}
+
+func (m Menu) AtRoot() bool {
+	return len(m.history) == 0
+}
+
+func (m Menu) Items() []MenuItem {
+	return m.items
 }
 
 func (m Menu) Update(msg tea.Msg) (Menu, tea.Cmd) {
