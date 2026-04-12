@@ -37,7 +37,7 @@ type StreamEvent struct {
 	Input   string    `json:"input,omitempty"`
 	Output  string    `json:"output,omitempty"`
 	Options []string  `json:"options,omitempty"`
-	Cost    float64   `json:"cost,omitempty"`
+	Cost    float64   `json:"totalCost,omitempty"`
 	Status  string    `json:"status,omitempty"`
 }
 

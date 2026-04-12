@@ -6,7 +6,8 @@ source "$SCRIPT_DIR/../protocol.sh"
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
 
-CLAUDE_PID=""
+# Track Claude session ID for resumption
+CLAUDE_SESSION_ID=""
 
 _parse_claude_event() {
     local line="$1"
@@ -14,19 +15,38 @@ _parse_claude_event() {
     type=$($JQ -r '.type // empty' <<< "$line" 2>/dev/null) || return
 
     case "$type" in
+        system)
+            # Capture session ID for later resumption
+            local session_id
+            session_id=$($JQ -r '.session_id // empty' <<< "$line" 2>/dev/null)
+            if [[ -n "$session_id" ]]; then
+                CLAUDE_SESSION_ID="$session_id"
+            fi
+            ;;
         assistant)
             local text
             text=$($JQ -r '.message.content[]? | select(.type == "text") | .text // empty' <<< "$line" 2>/dev/null)
             if [[ -n "$text" ]]; then
                 send_event "assistant" "$($JQ -cn --arg text "$text" '{text: $text}')"
+                # Check if text ends with a question mark
+                if [[ "$text" =~ \?[[:space:]]*$ ]]; then
+                    send_event "question" "$($JQ -cn --arg text "$text" '{text: $text}')"
+                fi
             fi
             local tool_uses
             tool_uses=$($JQ -c '.message.content[]? | select(.type == "tool_use")' <<< "$line" 2>/dev/null)
             if [[ -n "$tool_uses" ]]; then
                 while IFS= read -r tool_use; do
+                    [[ -z "$tool_use" ]] && continue
                     local tool_name input
                     tool_name=$($JQ -r '.name' <<< "$tool_use")
                     input=$($JQ -c '.input' <<< "$tool_use")
+                    # AskUserQuestion triggers input mode
+                    if [[ "$tool_name" == "AskUserQuestion" ]]; then
+                        local question
+                        question=$($JQ -r '.input.question // .input.text // empty' <<< "$tool_use")
+                        send_event "question" "$($JQ -cn --arg text "$question" '{text: $text}')"
+                    fi
                     send_event "tool_use" "$($JQ -cn --arg tool "$tool_name" --arg input "$input" '{tool: $tool, input: $input}')"
                 done <<< "$tool_uses"
             fi
@@ -42,11 +62,18 @@ _parse_claude_event() {
             local cost
             cost=$($JQ -r '.total_cost_usd // empty' <<< "$line" 2>/dev/null)
             if [[ -n "$cost" ]]; then
-                send_event "complete" "$($JQ -cn --arg status "success" --argjson cost "$cost" '{status: $status, totalCost: $cost}')"
+                local result_text
+                result_text=$($JQ -r '.result // empty' <<< "$line" 2>/dev/null)
+                # Check if result ends with question
+                if [[ "$result_text" =~ \?[[:space:]]*$ ]]; then
+                    send_event "question" "$($JQ -cn --arg text "$result_text" '{text: $text}')"
+                else
+                    send_event "complete" "$($JQ -cn --arg status "success" --argjson cost "$cost" '{status: $status, totalCost: $cost}')"
+                fi
             fi
             ;;
-        system) ;;
-        *) ;;
+        *)
+            ;;
     esac
 }
 
@@ -66,29 +93,47 @@ execute_agent() {
 
 _execute_claude() {
     local prompt="$1"
-    claude --print \
-           --output-format stream-json \
-           --verbose \
-           --permission-mode acceptEdits \
-           "$prompt" 2>/dev/null &
-    CLAUDE_PID=$!
 
+    # Use process substitution to capture Claude's output
+    # Claude's stdout is streamed line-by-line to the parser
     while IFS= read -r line; do
         [[ -z "$line" ]] && continue
         _parse_claude_event "$line"
-    done < <(wait $CLAUDE_PID 2>/dev/null; true)
-    CLAUDE_PID=""
+    done < <(claude --print \
+           --output-format stream-json \
+           --verbose \
+           --permission-mode acceptEdits \
+           "$prompt" 2>/dev/null)
+
+    # If we got here without a complete event, send one
+    send_event "complete" '{"status": "success", "totalCost": 0}'
 }
 
 cancel_execution() {
-    if [[ -n "$CLAUDE_PID" ]] && kill -0 "$CLAUDE_PID" 2>/dev/null; then
-        kill -TERM "$CLAUDE_PID" 2>/dev/null
-        CLAUDE_PID=""
-        send_event "complete" '{"status": "cancelled"}'
-    fi
+    # Send cancel signal to any running claude process
+    pkill -f "claude --print" 2>/dev/null || true
+    send_event "complete" '{"status": "cancelled", "totalCost": 0}'
 }
 
 send_user_input() {
     local text="$1"
-    send_error "User input during execution not yet implemented"
+    if [[ -z "$CLAUDE_SESSION_ID" ]]; then
+        send_error "No active session to resume"
+        return
+    fi
+    # Resume the Claude session with the user's response
+    _execute_claude_resume "$text"
+}
+
+_execute_claude_resume() {
+    local message="$1"
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        _parse_claude_event "$line"
+    done < <(claude --print \
+           --output-format stream-json \
+           --verbose \
+           --permission-mode acceptEdits \
+           --resume "$CLAUDE_SESSION_ID" \
+           "$message" 2>/dev/null)
 }
