@@ -133,6 +133,9 @@ func (a Activity) View() string {
 	if maxWidth > 60 {
 		maxWidth = 60
 	}
+	if maxWidth < 1 {
+		maxWidth = 1
+	}
 	b.WriteString(lipgloss.NewStyle().
 		Foreground(RedHatRed).
 		Render(strings.Repeat("━", maxWidth)))

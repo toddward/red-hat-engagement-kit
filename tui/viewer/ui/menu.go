@@ -81,6 +81,9 @@ func (m Menu) View() string {
 		if maxWidth > 40 {
 			maxWidth = 40
 		}
+		if maxWidth < 1 {
+			maxWidth = 1
+		}
 		b.WriteString(lipgloss.NewStyle().
 			Foreground(RedHatRed).
 			Render(strings.Repeat("━", maxWidth)))
