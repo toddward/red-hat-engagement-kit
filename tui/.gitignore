@@ -1,0 +1,8 @@
+# Bundled binaries
+bin/
+
+# Go build artifacts
+viewer/tui-viewer
+
+# State file (contains engagement-specific data)
+.tui-state.json
