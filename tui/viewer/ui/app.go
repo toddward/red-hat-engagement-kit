@@ -44,6 +44,8 @@ type App struct {
 	engagements []protocol.Engagement
 	agents      []protocol.Agent
 
+	pendingCmds map[string]string
+
 	bashIn  io.Writer
 	bashOut io.Reader
 	scanner *bufio.Scanner
@@ -66,6 +68,7 @@ func NewApp(bashIn io.Writer, bashOut io.Reader) App {
 		input:       NewInput(),
 		palette:     NewPalette(),
 		currentView: ViewMenu,
+		pendingCmds: make(map[string]string),
 		bashIn:      bashIn,
 		bashOut:     bashOut,
 		scanner:     bufio.NewScanner(bashOut),
@@ -85,6 +88,7 @@ func (a *App) sendCommand(cmd string, args interface{}) tea.Cmd {
 	return func() tea.Msg {
 		cmdCounter++
 		id := fmt.Sprintf("cmd-%d", cmdCounter)
+		a.pendingCmds[id] = cmd
 
 		command := protocol.Command{
 			Cmd: cmd,
@@ -180,6 +184,14 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					cmds = append(cmds, a.sendCommand("user_input", map[string]string{"text": val}))
 					a.currentView = ViewActivity
 					return a, tea.Batch(cmds...)
+				}
+			}
+		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
+			if a.currentView == ViewMenu && !a.showPalette {
+				for _, item := range a.menu.Items() {
+					if item.Key == msg.String() {
+						return a.handleAction(item.Action)
+					}
 				}
 			}
 		}
@@ -290,49 +302,42 @@ func (a *App) handleAction(action string) (tea.Model, tea.Cmd) {
 }
 
 func (a *App) handleBashResponse(resp protocol.Response) tea.Cmd {
+	cmdName := a.pendingCmds[resp.ID]
+	delete(a.pendingCmds, resp.ID)
+
 	switch resp.Type {
 	case "response":
-		var initResp protocol.InitResponse
-		if err := json.Unmarshal(resp.Payload, &initResp); err == nil && len(initResp.Skills) > 0 {
-			a.skills = initResp.Skills
-			a.engagements = initResp.Engagements
-			a.agents = initResp.Agents
-
-			// Smart engagement detection
-			switch len(a.engagements) {
-			case 1:
-				a.engagement = a.engagements[0].Slug
-				a.sidebar.SetEngagement(a.engagement)
-				return a.sendCommand("get_phase", map[string]string{"engagement": a.engagement})
-			case 0:
-				// No engagements — stay on menu
+		switch cmdName {
+		case "init":
+			var initResp protocol.InitResponse
+			if err := json.Unmarshal(resp.Payload, &initResp); err == nil {
+				a.skills = initResp.Skills
+				a.engagements = initResp.Engagements
+				a.agents = initResp.Agents
+				if len(a.engagements) == 1 {
+					a.engagement = a.engagements[0].Slug
+					a.sidebar.SetEngagement(a.engagement)
+					return a.sendCommand("get_phase", map[string]string{"engagement": a.engagement})
+				}
+				a.buildPaletteItems()
 			}
-
-			// Build palette items
-			items := make([]PaletteItem, 0)
-			for _, s := range a.skills {
-				items = append(items, PaletteItem{
-					Name:        "/" + s.Name,
-					Description: s.Description,
-					Action:      "run_skill:" + s.Name,
-					Category:    "Skills",
-				})
+		case "get_phase":
+			var phaseInfo protocol.PhaseInfo
+			if err := json.Unmarshal(resp.Payload, &phaseInfo); err == nil {
+				a.sidebar.SetPhase(phaseInfo)
 			}
-			for _, ag := range a.agents {
-				items = append(items, PaletteItem{
-					Name:        ag.Name,
-					Description: ag.Role,
-					Action:      "run_agent:" + ag.Name,
-					Category:    "Agents",
-				})
-			}
-			a.palette.SetItems(items)
-		}
-
-		// Handle phase response
-		var phaseInfo protocol.PhaseInfo
-		if err := json.Unmarshal(resp.Payload, &phaseInfo); err == nil && phaseInfo.Phase != "" {
-			a.sidebar.SetPhase(phaseInfo)
+		case "set_state":
+			// no-op
+		case "list_artifacts":
+			// Handled by Task 33
+		case "read_artifact":
+			// Handled by Task 33
+		case "list_checklists":
+			// Handled by Task 34
+		case "get_checklist":
+			// Handled by Task 34
+		case "toggle_checklist":
+			// Handled by Task 34
 		}
 
 	case "event":
@@ -359,6 +364,27 @@ func (a *App) handleBashResponse(resp protocol.Response) tea.Cmd {
 	}
 
 	return nil
+}
+
+func (a *App) buildPaletteItems() {
+	items := make([]PaletteItem, 0)
+	for _, s := range a.skills {
+		items = append(items, PaletteItem{
+			Name:        "/" + s.Name,
+			Description: s.Description,
+			Action:      "run_skill:" + s.Name,
+			Category:    "Skills",
+		})
+	}
+	for _, ag := range a.agents {
+		items = append(items, PaletteItem{
+			Name:        ag.Name,
+			Description: ag.Role,
+			Action:      "run_agent:" + ag.Name,
+			Category:    "Agents",
+		})
+	}
+	a.palette.SetItems(items)
 }
 
 func (a App) View() string {
