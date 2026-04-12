@@ -18,17 +18,23 @@ export PATH="$BIN_DIR:$PATH"
 # Change to project root (parent of tui/)
 cd "$TUI_DIR/.."
 
-# Launch with bidirectional communication using coproc
-# Bash core reads commands from stdin, writes responses to stdout
-# Viewer reads responses from bash's stdout, writes commands to bash's stdin
-# Viewer opens /dev/tty directly for terminal rendering
-coproc CORE {
-    bash "$CORE_DIR/main.sh"
+# Create named pipes for bidirectional communication
+# Works on bash 3.2+ (macOS default) unlike coproc which requires bash 4+
+FIFO_DIR=$(mktemp -d)
+FIFO_TO_CORE="$FIFO_DIR/to-core"
+FIFO_FROM_CORE="$FIFO_DIR/from-core"
+mkfifo "$FIFO_TO_CORE" "$FIFO_FROM_CORE"
+
+cleanup() {
+    kill "$CORE_PID" 2>/dev/null || true
+    rm -rf "$FIFO_DIR"
 }
+trap cleanup EXIT
 
-# Viewer: stdin connected to bash stdout (reads responses),
-#          stdout connected to bash stdin (sends commands)
-"$BIN_DIR/tui-viewer" <&"${CORE[0]}" >&"${CORE[1]}"
+# Launch bash core: reads commands from FIFO, writes responses to FIFO
+bash "$CORE_DIR/main.sh" < "$FIFO_TO_CORE" > "$FIFO_FROM_CORE" &
+CORE_PID=$!
 
-# Cleanup
-kill "${CORE_PID}" 2>/dev/null || true
+# Launch viewer: reads responses from core, writes commands to core
+# Viewer opens /dev/tty directly for terminal rendering
+"$BIN_DIR/tui-viewer" < "$FIFO_FROM_CORE" > "$FIFO_TO_CORE"
