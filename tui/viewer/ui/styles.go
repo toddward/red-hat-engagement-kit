@@ -141,3 +141,14 @@ var (
 	HelpDescStyle = lipgloss.NewStyle().
 			Foreground(TextMuted)
 )
+
+var (
+	ArtifactDirStyle  = lipgloss.NewStyle().Foreground(Blue).Bold(true)
+	ArtifactFileStyle = lipgloss.NewStyle().Foreground(TextPrimary)
+)
+
+var (
+	ChecklistCheckedStyle   = lipgloss.NewStyle().Foreground(Green)
+	ChecklistUncheckedStyle = lipgloss.NewStyle().Foreground(TextMuted)
+	ChecklistProgressStyle  = lipgloss.NewStyle().Foreground(Yellow)
+)

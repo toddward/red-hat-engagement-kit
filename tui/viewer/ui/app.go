@@ -19,6 +19,8 @@ const (
 	ViewMenu ViewType = iota
 	ViewActivity
 	ViewInput
+	ViewArtifacts
+	ViewChecklists
 )
 
 // BashMsg wraps a message from the bash layer
@@ -31,11 +33,13 @@ type App struct {
 	width  int
 	height int
 
-	sidebar  Sidebar
-	menu     Menu
-	activity Activity
-	input    Input
-	palette  Palette
+	sidebar    Sidebar
+	menu       Menu
+	activity   Activity
+	input      Input
+	palette    Palette
+	artifacts  ArtifactBrowser
+	checklists ChecklistBrowser
 
 	currentView ViewType
 	showPalette bool
@@ -67,6 +71,8 @@ func NewApp(bashIn io.Writer, bashOut io.Reader) App {
 		activity:    NewActivity(),
 		input:       NewInput(),
 		palette:     NewPalette(),
+		artifacts:   NewArtifactBrowser(),
+		checklists:  NewChecklistBrowser(),
 		currentView: ViewMenu,
 		pendingCmds: make(map[string]string),
 		bashIn:      bashIn,
@@ -130,6 +136,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.menu.SetSize(mainWidth, msg.Height)
 		a.activity.SetSize(mainWidth, msg.Height)
 		a.input.SetSize(mainWidth, msg.Height)
+		a.artifacts.SetSize(mainWidth, msg.Height)
+		a.checklists.SetSize(mainWidth, msg.Height)
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -153,6 +161,22 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if a.showPalette {
 				a.showPalette = false
 				a.palette.Close()
+				return a, nil
+			}
+			if a.currentView == ViewArtifacts {
+				if a.artifacts.IsViewing() {
+					a.artifacts.CloseContent()
+					return a, nil
+				}
+				a.currentView = ViewMenu
+				return a, nil
+			}
+			if a.currentView == ViewChecklists {
+				if a.checklists.IsViewing() {
+					a.checklists.CloseDetail()
+					return a, nil
+				}
+				a.currentView = ViewMenu
 				return a, nil
 			}
 			if a.currentView == ViewMenu {
@@ -186,6 +210,31 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return a, tea.Batch(cmds...)
 				}
 			}
+			if a.currentView == ViewArtifacts && !a.artifacts.IsViewing() {
+				if a.artifacts.SelectedIsFile() {
+					return a, a.sendCommand("read_artifact", map[string]string{"path": a.artifacts.SelectedPath()})
+				}
+			}
+			if a.currentView == ViewChecklists && !a.checklists.IsViewing() {
+				name := a.checklists.SelectedName()
+				if name != "" {
+					return a, a.sendCommand("get_checklist", map[string]string{"name": name})
+				}
+			}
+		case " ":
+			if a.currentView == ViewChecklists && a.checklists.IsViewing() {
+				item := a.checklists.SelectedItem()
+				clName := a.checklists.ChecklistName()
+				if item != nil && clName != "" {
+					return a, tea.Batch(
+						a.sendCommand("toggle_checklist", map[string]string{
+							"name": clName,
+							"line": fmt.Sprintf("%d", item.Line),
+						}),
+						a.sendCommand("get_checklist", map[string]string{"name": clName}),
+					)
+				}
+			}
 		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
 			if a.currentView == ViewMenu && !a.showPalette {
 				for _, item := range a.menu.Items() {
@@ -213,6 +262,14 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case ViewInput:
 				var cmd tea.Cmd
 				a.input, cmd = a.input.Update(msg)
+				cmds = append(cmds, cmd)
+			case ViewArtifacts:
+				var cmd tea.Cmd
+				a.artifacts, cmd = a.artifacts.Update(msg)
+				cmds = append(cmds, cmd)
+			case ViewChecklists:
+				var cmd tea.Cmd
+				a.checklists, cmd = a.checklists.Update(msg)
 				cmds = append(cmds, cmd)
 			}
 		}
@@ -274,8 +331,10 @@ func (a *App) handleAction(action string) (tea.Model, tea.Cmd) {
 		})
 		a.menu.PushMenu("Engagements", items)
 	case "show_artifacts":
+		a.currentView = ViewArtifacts
 		cmds = append(cmds, a.sendCommand("list_artifacts", map[string]string{"engagement": a.engagement}))
 	case "show_checklists":
+		a.currentView = ViewChecklists
 		cmds = append(cmds, a.sendCommand("list_checklists", nil))
 	case "select_engagement":
 		a.engagement = actionArg
@@ -329,15 +388,39 @@ func (a *App) handleBashResponse(resp protocol.Response) tea.Cmd {
 		case "set_state":
 			// no-op
 		case "list_artifacts":
-			// Handled by Task 33
+			var treeResp struct {
+				Tree []protocol.ArtifactNode `json:"tree"`
+			}
+			if err := json.Unmarshal(resp.Payload, &treeResp); err == nil {
+				a.artifacts.SetTree(treeResp.Tree)
+			}
 		case "read_artifact":
-			// Handled by Task 33
+			var contentResp struct {
+				Content string `json:"content"`
+			}
+			if err := json.Unmarshal(resp.Payload, &contentResp); err == nil {
+				a.artifacts.SetContent(contentResp.Content)
+			}
 		case "list_checklists":
-			// Handled by Task 34
+			var clResp struct {
+				Checklists []struct {
+					Name string `json:"name"`
+				} `json:"checklists"`
+			}
+			if err := json.Unmarshal(resp.Payload, &clResp); err == nil {
+				names := make([]string, len(clResp.Checklists))
+				for i, cl := range clResp.Checklists {
+					names[i] = cl.Name
+				}
+				a.checklists.SetNames(names)
+			}
 		case "get_checklist":
-			// Handled by Task 34
+			var cl protocol.Checklist
+			if err := json.Unmarshal(resp.Payload, &cl); err == nil && cl.Name != "" {
+				a.checklists.SetChecklist(cl)
+			}
 		case "toggle_checklist":
-			// Handled by Task 34
+			// refresh handled by the follow-up get_checklist command
 		}
 
 	case "event":
@@ -398,6 +481,10 @@ func (a App) View() string {
 		main = a.activity.View()
 	case ViewInput:
 		main = a.input.View()
+	case ViewArtifacts:
+		main = a.artifacts.View()
+	case ViewChecklists:
+		main = a.checklists.View()
 	}
 
 	content := lipgloss.JoinHorizontal(lipgloss.Top, sidebar, main)
