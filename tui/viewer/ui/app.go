@@ -224,7 +224,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				val := a.input.Value()
 				if val != "" {
 					cmds = append(cmds, a.sendCommand("user_input", map[string]string{"text": val}))
-					a.currentView = ViewActivity
+					a.currentView = ViewMenu // Log is always visible at bottom
 					return a, tea.Batch(cmds...)
 				}
 			}
