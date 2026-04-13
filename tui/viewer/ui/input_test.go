@@ -146,3 +146,50 @@ func TestInput_View_SelectedOption(t *testing.T) {
 		t.Error("expected View() to contain cursor prefix '❯' for selected option")
 	}
 }
+
+func TestInput_WaitingState(t *testing.T) {
+	i := NewInput()
+	i.SetPrompt("Enter name:", nil)
+
+	// Initially not waiting
+	if i.IsWaiting() {
+		t.Error("expected IsWaiting() to be false initially")
+	}
+
+	// Set waiting
+	i.SetWaiting(true)
+	if !i.IsWaiting() {
+		t.Error("expected IsWaiting() to be true after SetWaiting(true)")
+	}
+
+	// View should show waiting state
+	view := i.View()
+	if !strings.Contains(view, "Processing") {
+		t.Error("expected View() to contain 'Processing' in waiting state")
+	}
+	if !strings.Contains(view, "Waiting") {
+		t.Error("expected View() to contain 'Waiting' in waiting state")
+	}
+
+	// SetPrompt should clear waiting state
+	i.SetPrompt("New question:", nil)
+	if i.IsWaiting() {
+		t.Error("expected IsWaiting() to be false after SetPrompt")
+	}
+}
+
+func TestInput_WaitingState_View(t *testing.T) {
+	i := NewInput()
+	i.SetPrompt("Original prompt:", []string{"A", "B"})
+	i.SetWaiting(true)
+
+	view := i.View()
+	// Should NOT show original prompt when waiting
+	if strings.Contains(view, "Original prompt") {
+		t.Error("expected View() to NOT contain original prompt when waiting")
+	}
+	// Should show waiting message
+	if !strings.Contains(view, "Processing") {
+		t.Error("expected View() to contain 'Processing' when waiting")
+	}
+}

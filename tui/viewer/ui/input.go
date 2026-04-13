@@ -15,6 +15,7 @@ type Input struct {
 	cursor    int
 	width     int
 	height    int
+	waiting   bool // true after submission, cleared when new prompt arrives
 }
 
 func NewInput() Input {
@@ -35,10 +36,22 @@ func (i *Input) SetPrompt(prompt string, options []string) {
 	i.prompt = prompt
 	i.options = options
 	i.cursor = 0
+	i.waiting = false
 	i.textInput.SetValue("")
 	if len(options) == 0 {
 		i.textInput.Focus()
 	}
+}
+
+func (i *Input) SetWaiting(waiting bool) {
+	i.waiting = waiting
+	if waiting {
+		i.textInput.Blur()
+	}
+}
+
+func (i Input) IsWaiting() bool {
+	return i.waiting
 }
 
 func (i *Input) Focus() { i.textInput.Focus() }
@@ -75,6 +88,16 @@ func (i Input) Update(msg tea.Msg) (Input, tea.Cmd) {
 
 func (i Input) View() string {
 	var b strings.Builder
+
+	if i.waiting {
+		b.WriteString(InputLabelStyle.Render("Processing..."))
+		b.WriteString("\n\n")
+		b.WriteString(lipgloss.NewStyle().Foreground(TextMuted).Render("Waiting for next step"))
+		b.WriteString("\n\n")
+		b.WriteString(HelpKeyStyle.Render("Esc"))
+		b.WriteString(HelpDescStyle.Render(" cancel"))
+		return MainStyle.Render(b.String())
+	}
 
 	b.WriteString(InputLabelStyle.Render(i.prompt))
 	b.WriteString("\n\n")

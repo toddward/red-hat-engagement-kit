@@ -220,14 +220,12 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return a.handleAction(item.Action)
 				}
 			}
-			if a.currentView == ViewInput {
+			if a.currentView == ViewInput && !a.input.IsWaiting() {
 				val := a.input.Value()
 				if val != "" {
 					cmds = append(cmds, a.sendCommand("user_input", map[string]string{"text": val}))
-					a.currentView = ViewMenu
-					// Pop to root menu so user sees main menu + log, not stale submenu
-					for a.menu.PopMenu() {
-					}
+					// Stay in input view with waiting state until next question or completion
+					a.input.SetWaiting(true)
 					return a, tea.Batch(cmds...)
 				}
 			}
@@ -448,6 +446,12 @@ func (a *App) handleBashResponse(resp protocol.Response) tea.Cmd {
 				a.currentView = ViewInput
 			} else {
 				a.activity.AddEvent(event)
+				// On skill completion, return to root menu
+				if event.Event == protocol.EventComplete {
+					a.currentView = ViewMenu
+					for a.menu.PopMenu() {
+					}
+				}
 			}
 		}
 

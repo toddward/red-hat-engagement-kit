@@ -10,6 +10,8 @@ PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
 CLAUDE_SESSION_ID=""
 # Track whether a complete event was sent this execution
 _SENT_COMPLETE=""
+# Track whether we're waiting for user input (AskUserQuestion pending)
+_WAITING_FOR_INPUT=""
 
 _parse_claude_event() {
     local line="$1"
@@ -52,6 +54,8 @@ _parse_claude_event() {
                         options_json=$($JQ -c '[.input.questions[0].options[]?.label // empty] // []' <<< "$tool_use" 2>/dev/null)
                         [[ "$options_json" == "null" || -z "$options_json" ]] && options_json="[]"
                         send_event "question" "$($JQ -cn --arg text "$question" --argjson options "$options_json" '{text: $text, options: $options}')"
+                        # Don't send complete while waiting for user input
+                        _WAITING_FOR_INPUT="true"
                     fi
                     send_event "tool_use" "$($JQ -cn --arg tool "$tool_name" --arg input "$input" '{tool: $tool, input: $input}')"
                 done <<< "$tool_uses"
@@ -112,8 +116,8 @@ _execute_claude() {
            --permission-mode acceptEdits \
            "$prompt" 2>/dev/null)
 
-    # If we got here without a complete event, send one
-    if [[ -z "$_SENT_COMPLETE" ]]; then
+    # If we got here without a complete event, send one (unless waiting for user input)
+    if [[ -z "$_SENT_COMPLETE" && -z "$_WAITING_FOR_INPUT" ]]; then
         send_event "complete" '{"status": "success", "totalCost": 0}'
     fi
     _SENT_COMPLETE=""
@@ -122,6 +126,7 @@ _execute_claude() {
 cancel_execution() {
     # Send cancel signal to any running claude process
     pkill -f "claude --print" 2>/dev/null || true
+    _WAITING_FOR_INPUT=""
     send_event "complete" '{"status": "cancelled", "totalCost": 0}'
 }
 
@@ -131,12 +136,15 @@ send_user_input() {
         send_error "No active session to resume"
         return
     fi
+    # Clear waiting flag - user has provided input
+    _WAITING_FOR_INPUT=""
     # Resume the Claude session with the user's response
     _execute_claude_resume "$text"
 }
 
 _execute_claude_resume() {
     local message="$1"
+    _SENT_COMPLETE=""
     while IFS= read -r line; do
         [[ -z "$line" ]] && continue
         _parse_claude_event "$line"
@@ -146,4 +154,10 @@ _execute_claude_resume() {
            --permission-mode acceptEdits \
            --resume "$CLAUDE_SESSION_ID" \
            "$message" 2>/dev/null)
+
+    # If we got here without a complete event, send one (unless waiting for more input)
+    if [[ -z "$_SENT_COMPLETE" && -z "$_WAITING_FOR_INPUT" ]]; then
+        send_event "complete" '{"status": "success", "totalCost": 0}'
+    fi
+    _SENT_COMPLETE=""
 }
