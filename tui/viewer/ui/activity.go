@@ -41,7 +41,10 @@ func (a *Activity) SetSize(width, height int) {
 	a.width = width
 	a.height = height
 	a.viewport.Width = width
-	a.viewport.Height = height - 4
+	a.viewport.Height = height - 2 // header + footer
+	if a.viewport.Height < 1 {
+		a.viewport.Height = 1
+	}
 }
 
 func (a *Activity) Clear() {
@@ -125,47 +128,29 @@ func (a Activity) Update(msg tea.Msg) (Activity, tea.Cmd) {
 func (a Activity) View() string {
 	var b strings.Builder
 
-	// Header
+	// Compact header: status indicator only
 	if a.running {
-		runLabel := StatusRunningStyle.Render("● Running")
-		var header string
+		header := StatusRunningStyle.Render("● Running")
 		if a.skillName != "" {
-			header = runLabel + "  " + lipgloss.NewStyle().Foreground(TextMuted).Render(a.skillName)
-		} else {
-			header = runLabel
+			header += "  " + lipgloss.NewStyle().Foreground(TextMuted).Render(a.skillName)
 		}
 		b.WriteString(header)
+	} else if len(a.entries) > 0 {
+		b.WriteString(lipgloss.NewStyle().Foreground(TextDim).Render("─ Log"))
 	} else {
-		b.WriteString(TitleStyle.Render("Execution Log"))
+		b.WriteString(lipgloss.NewStyle().Foreground(TextDim).Render("─ Log (empty)"))
 	}
 	b.WriteString("\n")
 
-	// Thin #333 divider
-	maxWidth := a.width - 4
-	if maxWidth > 60 {
-		maxWidth = 60
-	}
-	if maxWidth < 1 {
-		maxWidth = 1
-	}
-	b.WriteString(DividerStyle.Render(strings.Repeat("─", maxWidth)))
-	b.WriteString("\n\n")
-
+	// Viewport (fills remaining space)
 	b.WriteString(a.viewport.View())
-	b.WriteString("\n")
 
+	// Cost footer (only when there is a cost)
 	if a.cost > 0 {
-		costStr := fmt.Sprintf("Cost: $%.4f", a.cost)
-		b.WriteString(lipgloss.NewStyle().Foreground(TextMuted).Render(costStr))
+		b.WriteString("\n")
+		costStr := fmt.Sprintf("$%.4f", a.cost)
+		b.WriteString(lipgloss.NewStyle().Foreground(TextDim).Render(costStr))
 	}
 
-	b.WriteString("\n")
-	b.WriteString(HelpKeyStyle.Render("↑/↓"))
-	b.WriteString(HelpDescStyle.Render(" scroll  "))
-	b.WriteString(HelpKeyStyle.Render("Ctrl+C"))
-	b.WriteString(HelpDescStyle.Render(" cancel  "))
-	b.WriteString(HelpKeyStyle.Render("Esc"))
-	b.WriteString(HelpDescStyle.Render(" back"))
-
-	return MainStyle.Render(b.String())
+	return b.String()
 }

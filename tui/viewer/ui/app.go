@@ -134,16 +134,24 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.height = msg.Height
 		a.sidebar.SetSize(SidebarWidth, msg.Height)
 		mainWidth := msg.Width - SidebarWidth - 2
-		a.menu.SetSize(mainWidth, msg.Height)
-		a.activity.SetSize(mainWidth, msg.Height)
-		a.input.SetSize(mainWidth, msg.Height)
-		a.artifacts.SetSize(mainWidth, msg.Height)
-		a.checklists.SetSize(mainWidth, msg.Height)
+
+		// Split right panel: main content on top, activity log fixed at bottom
+		logHeight := 10
+		mainHeight := msg.Height - logHeight - 2 // -1 divider, -1 status bar
+		if mainHeight < 5 {
+			mainHeight = 5
+		}
+
+		a.menu.SetSize(mainWidth, mainHeight)
+		a.input.SetSize(mainWidth, mainHeight)
+		a.activity.SetSize(mainWidth, logHeight)
+		a.artifacts.SetSize(mainWidth, mainHeight)
+		a.checklists.SetSize(mainWidth, mainHeight)
 
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
-			if a.currentView == ViewActivity && a.activity.running {
+			if a.activity.running {
 				cmds = append(cmds, a.sendCommand("cancel", nil))
 				return a, tea.Batch(cmds...)
 			}
@@ -265,10 +273,6 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				var cmd tea.Cmd
 				a.menu, cmd = a.menu.Update(msg)
 				cmds = append(cmds, cmd)
-			case ViewActivity:
-				var cmd tea.Cmd
-				a.activity, cmd = a.activity.Update(msg)
-				cmds = append(cmds, cmd)
 			case ViewInput:
 				var cmd tea.Cmd
 				a.input, cmd = a.input.Update(msg)
@@ -357,7 +361,7 @@ func (a *App) handleAction(action string) (tea.Model, tea.Cmd) {
 	case "run_skill":
 		a.activity.Clear()
 		a.activity.SetRunning(true)
-		a.currentView = ViewActivity
+		// Stay on current view — log is always visible at bottom
 		cmds = append(cmds, a.sendCommand("execute_skill", map[string]string{
 			"skill":      actionArg,
 			"engagement": a.engagement,
@@ -483,38 +487,55 @@ func (a *App) buildPaletteItems() {
 func (a App) View() string {
 	sidebar := a.sidebar.View()
 
-	var main string
+	// Main content area (top of right panel)
+	var mainView string
 	switch a.currentView {
 	case ViewMenu:
-		main = a.menu.View()
-	case ViewActivity:
-		main = a.activity.View()
+		mainView = a.menu.View()
 	case ViewInput:
-		main = a.input.View()
+		mainView = a.input.View()
 	case ViewArtifacts:
-		main = a.artifacts.View()
+		mainView = a.artifacts.View()
 	case ViewChecklists:
-		main = a.checklists.View()
+		mainView = a.checklists.View()
+	default:
+		mainView = a.menu.View()
 	}
 
-	content := lipgloss.JoinHorizontal(lipgloss.Top, sidebar, main)
-
-	// Status bar
-	var statusParts []string
-	if a.engagement != "" {
-		statusParts = append(statusParts, StatusBarAccentStyle.Render(" RH "))
-		statusParts = append(statusParts, StatusBarStyle.Render(" "+a.engagement+" "))
+	// Constrain main view height
+	mainWidth := a.width - SidebarWidth - 2
+	mainHeight := a.height - 10 - 2
+	if mainHeight < 5 {
+		mainHeight = 5
 	}
-	statusBar := lipgloss.JoinHorizontal(lipgloss.Top, statusParts...)
-	statusBar = lipgloss.NewStyle().
-		Width(a.width).
-		Background(lipgloss.Color("#1a1a1a")).
-		Render(statusBar)
-	content = content + "\n" + statusBar
+	mainView = lipgloss.NewStyle().
+		Height(mainHeight).
+		Width(mainWidth).
+		Render(mainView)
 
+	// Divider between content and log
+	divWidth := mainWidth - 4
+	if divWidth < 1 {
+		divWidth = 1
+	}
+	divider := DividerStyle.Render(strings.Repeat("─", divWidth))
+
+	// Activity log (bottom of right panel, always visible)
+	logView := a.activity.View()
+
+	// Compose right panel vertically
+	rightPanel := lipgloss.JoinVertical(lipgloss.Left, mainView, divider, logView)
+
+	// Compose full layout horizontally
+	content := lipgloss.JoinHorizontal(lipgloss.Top, sidebar, rightPanel)
+
+	// Overlays (palette, help)
 	if a.showPalette {
 		paletteView := a.palette.View()
 		x := (a.width - 60) / 2
+		if x < 0 {
+			x = 0
+		}
 		y := 5
 		content = placeOverlay(x, y, paletteView, content)
 	}
@@ -527,6 +548,21 @@ func (a App) View() string {
 		}
 		y := 3
 		content = placeOverlay(x, y, helpView, content)
+	}
+
+	// Status bar
+	var statusParts []string
+	if a.engagement != "" {
+		statusParts = append(statusParts, StatusBarAccentStyle.Render(" RH "))
+		statusParts = append(statusParts, StatusBarStyle.Render(" "+a.engagement+" "))
+	}
+	if len(statusParts) > 0 {
+		statusBar := lipgloss.JoinHorizontal(lipgloss.Top, statusParts...)
+		statusBar = lipgloss.NewStyle().
+			Width(a.width).
+			Background(lipgloss.Color("#1a1a1a")).
+			Render(statusBar)
+		content = content + "\n" + statusBar
 	}
 
 	return content
