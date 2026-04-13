@@ -56,6 +56,25 @@ Run these inside your AI coding agent (Claude Code or OpenCode) with the `/` pre
 | `/assess-app-portfolio` | Run system info collection script and produce assessment |
 | `/build-deliverable-deck` | Generate customer-facing presentation from all artifacts |
 
+## Team Agents
+
+Specialized sub-agents that form the engagement delivery team. Invoke via the Agent tool with the appropriate model:
+
+| Agent | Model | Role |
+|-------|-------|------|
+| **Architect** | Opus | Team lead — holistic project understanding, coordination, architectural decisions |
+| **Senior Developer** | Sonnet | Implementation — production code, debugging, technical execution |
+| **QA Specialist** | Opus | Quality — testing, validation, quality gates |
+| **Documentation Specialist** | Opus | Writing — customer-facing docs, CONTEXT.md maintenance, deliverables |
+
+**When to use:**
+- Use **Architect** for planning, delegation, and cross-cutting decisions
+- Use **Senior Developer** for implementation tasks and bug fixes
+- Use **QA Specialist** for validating deliverables and testing
+- Use **Documentation Specialist** for writing and document maintenance
+
+Agent definitions are in `.claude/agents/`. See `.claude/agents/README.md` for invocation patterns and coordination examples.
+
 ## Working With This Repo
 
 **Starting a new engagement:**
