@@ -224,7 +224,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				val := a.input.Value()
 				if val != "" {
 					cmds = append(cmds, a.sendCommand("user_input", map[string]string{"text": val}))
-					a.currentView = ViewMenu // Log is always visible at bottom
+					a.currentView = ViewMenu
+					// Pop to root menu so user sees main menu + log, not stale submenu
+					for a.menu.PopMenu() {
+					}
 					return a, tea.Batch(cmds...)
 				}
 			}
