@@ -8,6 +8,8 @@ PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
 
 # Track Claude session ID for resumption
 CLAUDE_SESSION_ID=""
+# Track whether a complete event was sent this execution
+_SENT_COMPLETE=""
 
 _parse_claude_event() {
     local line="$1"
@@ -43,9 +45,13 @@ _parse_claude_event() {
                     input=$($JQ -c '.input' <<< "$tool_use")
                     # AskUserQuestion triggers input mode
                     if [[ "$tool_name" == "AskUserQuestion" ]]; then
-                        local question
-                        question=$($JQ -r '.input.question // .input.text // empty' <<< "$tool_use")
-                        send_event "question" "$($JQ -cn --arg text "$question" '{text: $text}')"
+                        local question options_json
+                        # AskUserQuestion schema: .input.questions[0].question for text
+                        question=$($JQ -r '.input.questions[0].question // .input.question // .input.text // empty' <<< "$tool_use")
+                        # Extract option labels if present
+                        options_json=$($JQ -c '[.input.questions[0].options[]?.label // empty] // []' <<< "$tool_use" 2>/dev/null)
+                        [[ "$options_json" == "null" || -z "$options_json" ]] && options_json="[]"
+                        send_event "question" "$($JQ -cn --arg text "$question" --argjson options "$options_json" '{text: $text, options: $options}')"
                     fi
                     send_event "tool_use" "$($JQ -cn --arg tool "$tool_name" --arg input "$input" '{tool: $tool, input: $input}')"
                 done <<< "$tool_uses"
@@ -68,6 +74,7 @@ _parse_claude_event() {
                 if [[ "$result_text" =~ \?[[:space:]]*$ ]]; then
                     send_event "question" "$($JQ -cn --arg text "$result_text" '{text: $text}')"
                 else
+                    _SENT_COMPLETE="true"
                     send_event "complete" "$($JQ -cn --arg status "success" --argjson cost "$cost" '{status: $status, totalCost: $cost}')"
                 fi
             fi
@@ -106,7 +113,10 @@ _execute_claude() {
            "$prompt" 2>/dev/null)
 
     # If we got here without a complete event, send one
-    send_event "complete" '{"status": "success", "totalCost": 0}'
+    if [[ -z "$_SENT_COMPLETE" ]]; then
+        send_event "complete" '{"status": "success", "totalCost": 0}'
+    fi
+    _SENT_COMPLETE=""
 }
 
 cancel_execution() {
