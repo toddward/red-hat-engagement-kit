@@ -67,14 +67,14 @@ func (s Sidebar) View() string {
 		b.WriteString("\n")
 
 		phaseStyle := PhasePreEngagementStyle
-		phaseText := "Pre-Engagement"
+		phaseText := "○ Pre-Engagement"
 		switch s.phase {
 		case protocol.PhaseLive:
 			phaseStyle = PhaseLiveStyle
 			phaseText = "● Live"
 		case protocol.PhaseLeaveBehind:
 			phaseStyle = PhaseLeaveBehindStyle
-			phaseText = "Leave-Behind"
+			phaseText = "◆ Leave-Behind"
 		}
 		b.WriteString(phaseStyle.Render(phaseText))
 		b.WriteString("\n")

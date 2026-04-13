@@ -5,6 +5,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/toddward/red-hat-engagement-kit/tui/viewer/ui"
 )
 
@@ -18,6 +19,11 @@ func main() {
 		os.Exit(1)
 	}
 	defer tty.Close()
+
+	// Tell Lipgloss to detect color capability from the tty, not stdout.
+	// stdout is a pipe to bash, so Lipgloss would see "not a terminal"
+	// and disable all colors. The tty is the real terminal.
+	lipgloss.SetDefaultRenderer(lipgloss.NewRenderer(tty))
 
 	// bash reads from our stdout; we read from bash's stdout (our stdin).
 	app := ui.NewApp(os.Stdout, os.Stdin)
