@@ -157,16 +157,16 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return a, tea.Quit
 		case "q":
-			if a.currentView == ViewMenu && !a.showPalette {
+			if a.currentView == ViewMenu && !a.showPalette && a.menu.AtRoot() {
 				return a, tea.Quit
 			}
 		case "?":
-			if !a.showPalette {
+			if !a.showPalette && a.currentView != ViewInput {
 				a.showHelp = !a.showHelp
 				return a, nil
 			}
 		case "/":
-			if !a.showPalette {
+			if !a.showPalette && a.currentView != ViewInput {
 				a.showPalette = true
 				a.palette.Open()
 				return a, nil
@@ -508,10 +508,18 @@ func (a App) View() string {
 	if mainHeight < 5 {
 		mainHeight = 5
 	}
-	mainView = lipgloss.NewStyle().
-		Height(mainHeight).
-		Width(mainWidth).
-		Render(mainView)
+
+	// Overlays replace main content area (avoids ANSI byte-slicing issues)
+	if a.showHelp {
+		mainView = lipgloss.Place(mainWidth, mainHeight, lipgloss.Center, lipgloss.Center, HelpView())
+	} else if a.showPalette {
+		mainView = lipgloss.Place(mainWidth, mainHeight, lipgloss.Center, lipgloss.Center, a.palette.View())
+	} else {
+		mainView = lipgloss.NewStyle().
+			Height(mainHeight).
+			Width(mainWidth).
+			Render(mainView)
+	}
 
 	// Divider between content and log
 	divWidth := mainWidth - 4
@@ -528,27 +536,6 @@ func (a App) View() string {
 
 	// Compose full layout horizontally
 	content := lipgloss.JoinHorizontal(lipgloss.Top, sidebar, rightPanel)
-
-	// Overlays (palette, help)
-	if a.showPalette {
-		paletteView := a.palette.View()
-		x := (a.width - 60) / 2
-		if x < 0 {
-			x = 0
-		}
-		y := 5
-		content = placeOverlay(x, y, paletteView, content)
-	}
-
-	if a.showHelp {
-		helpView := HelpView()
-		x := (a.width - 50) / 2
-		if x < 0 {
-			x = 0
-		}
-		y := 3
-		content = placeOverlay(x, y, helpView, content)
-	}
 
 	// Status bar
 	var statusParts []string
@@ -568,19 +555,3 @@ func (a App) View() string {
 	return content
 }
 
-func placeOverlay(x, y int, overlay, background string) string {
-	bgLines := strings.Split(background, "\n")
-	ovLines := strings.Split(overlay, "\n")
-
-	for i, ovLine := range ovLines {
-		bgY := y + i
-		if bgY >= 0 && bgY < len(bgLines) {
-			bgLine := bgLines[bgY]
-			if x >= 0 && x < len(bgLine) {
-				bgLines[bgY] = bgLine[:x] + ovLine
-			}
-		}
-	}
-
-	return strings.Join(bgLines, "\n")
-}
