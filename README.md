@@ -59,6 +59,9 @@ Then type `/setup` inside Claude Code. Claude handles everything from there.
 
 ## Customization
 
+For detailed guidance on writing skills that integrate cleanly with this kit,
+see [SKILL_AUTHORING.md](SKILL_AUTHORING.md).
+
 **Add a new assessment type:**
 Create `.claude/skills/assess-<topic>/SKILL.md` following the existing assessment skill patterns. It should read from `CONTEXT.md`, conduct an interview or intake, produce a report, and append findings back to `CONTEXT.md`.
 
@@ -87,6 +90,7 @@ rh-engagement-kit/
 │   ├── checklists/              # Assessment checklists
 │   └── templates/               # Document/deck templates
 ├── CLAUDE.md                    # Global engagement methodology
+├── SKILL_AUTHORING.md           # Skill contributor and review guide
 └── README.md                    # This file
 ```
 
@@ -102,6 +106,10 @@ rh-engagement-kit/
 **Don't add features, add skills.**
 
 Want to add a new assessment type? Create a skill. Want to support a different deliverable format? Create a skill. The base repo stays minimal — your fork encodes your specific needs.
+
+Before adding a skill, read [SKILL_AUTHORING.md](SKILL_AUTHORING.md) for the
+required context protocol, artifact expectations, and maintainer review
+checklist.
 
 ## Requirements
 

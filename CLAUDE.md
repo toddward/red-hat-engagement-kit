@@ -74,7 +74,12 @@ claude
 ```
 
 **Adding a custom skill:**
-Create a new directory under `.claude/skills/` with a `SKILL.md` file. Follow the existing skill patterns.
+Create a new directory under `.claude/skills/` with a `SKILL.md` file. Follow the existing skill patterns and the contributor contract in `SKILL_AUTHORING.md`.
+
+Custom skills should be reviewed against that guide before use in customer
+engagements. At minimum, they must load `CONTEXT.md`, avoid re-asking known
+facts, produce durable artifacts under `engagements/<customer>/`, append a
+structured phase summary, and document sensitive-data handling.
 
 ## Security Notes
 
