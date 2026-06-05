@@ -113,13 +113,16 @@ summarization:
   size_threshold_lines: 400  # when trigger=size: distill once a tier's recall exceeds this
   keep_recent_phases: 2      # always keep the last N phases' detail un-summarized
 
-always_keep_verbatim:        # record types NEVER summarized away — this IS "when to remember in full"
+always_keep_verbatim:        # record TYPES never summarized away (keys on the `type` field)
   - decision
   - commitment               # dates, SLAs, promises to the customer
-  - sensitive                # anything [SENSITIVE]-tagged
   - score                    # maturity scores / quantified findings
   - stakeholder              # named people, roles, contacts
   - risk                     # open risks / conflicts
+
+keep_sensitive_verbatim: true  # SEPARATE sensitivity floor: ANY record with sensitivity: sensitive
+                               # (or [SENSITIVE] content) is never summarized or rolled up, regardless
+                               # of type. Keys on the `sensitivity` field, not `type`.
 
 promotion:                   # engagement memory → cross-engagement institutional memory
   enabled: true
@@ -157,13 +160,13 @@ back to the documented `balanced` defaults above and notes that it did so.
 
 ```markdown
 ---
-type: decision      # decision|constraint|fact|score|stakeholder|risk|summary|pattern|insight
+type: decision      # decision|commitment|constraint|fact|score|stakeholder|risk|summary|pattern|insight
 date: 2026-06-02
 verbatim: true      # honored against the always_keep_verbatim policy
 phase: discovery
 sensitivity: none   # none | sensitive   (sensitive never promotes)
 tags: [airgap, ocp]
-supersedes: null    # name of a record this replaces — no hard deletes
+supersedes: null    # name — or list of names — of record(s) this replaces (no hard deletes)
 ---
 One durable fact / decision / distilled summary. Links with [[other-record]].
 ```
@@ -176,16 +179,18 @@ One durable fact / decision / distilled summary. Links with [[other-record]].
 - [summary] discovery — VMware-heavy, no containers yet; F5 ingress; AD identity (2026-06-03)
 ```
 
-`type` is one of: `decision`, `constraint`, `fact`, `score`, `stakeholder`,
-`risk`, `summary` (a distilled rollup), `pattern`, `insight` (the last two are
-typical Tier-2 promotion outputs).
+`type` is one of: `decision`, `commitment`, `constraint`, `fact`, `score`,
+`stakeholder`, `risk`, `summary` (a distilled rollup), `pattern`, `insight` (the
+last two are typical Tier-2 promotion outputs).
 
 **Precedence of `verbatim`:** the per-record `verbatim` field is a denormalized
-cache of the policy decision — set from `always_keep_verbatim` at capture time so
-that simple consumers don't have to re-read the policy. The **policy is the
-source of truth**: `/memory compact` re-evaluates each record's type against the
-*current* `always_keep_verbatim` list, so editing the policy takes effect
-retroactively even on records captured earlier.
+cache of the policy decision — set at capture time so simple consumers don't have
+to re-read the policy. The **policy is the source of truth**: `/memory compact`
+re-evaluates each record against the *current* rules — its `type` vs.
+`always_keep_verbatim` **and** its `sensitivity` field (any `sensitivity:
+sensitive` / `[SENSITIVE]` record is kept verbatim regardless of `type`, the same
+predicate `promote` uses) — so editing the policy takes effect retroactively even
+on records captured earlier.
 
 ## 9. The Memory Protocol — the contract every skill honors
 

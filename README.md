@@ -10,7 +10,7 @@ Supports both **Claude Code** and **OpenCode** as the AI agent runtime.
 
 ## What This Is
 
-A structured, skills-driven framework for delivering customer engagements. Each engagement phase is a skill that guides the architect through discovery, assessment, and deliverable generation. Context accumulates in a living `CONTEXT.md` file — later skills build on earlier findings automatically.
+A structured, skills-driven framework for delivering customer engagements. Each engagement phase is a skill that guides the architect through discovery, assessment, and deliverable generation. Memory accumulates as the engagement runs — an append-only `CONTEXT.md` audit trail plus a distilled, configurable recall layer that later skills (and future engagements) build on automatically.
 
 **This is not a SaaS product or a framework with dependencies.** It's a Git repo with markdown files that your AI coding agent knows how to execute. Fork it, customize it, run engagements with it.
 
@@ -44,6 +44,7 @@ Then type `/setup` inside OpenCode.
 | `/discover-infrastructure` | Discovery | Structured infrastructure interview across 6 domains, maturity scoring |
 | `/assess-app-portfolio` | Assessment | Run system info collection script, present findings, produce assessment report |
 | `/build-deliverable-deck` | Delivery | Customer-facing executive presentation (Quick Deck or PPTX) |
+| `/memory` | Foundational | Long-lived memory engine — `compact` (distill), `promote` (across engagements), `recall`, `status` |
 
 ## How It Works
 
@@ -71,6 +72,19 @@ Then type `/setup` inside OpenCode.
   └── Writes to deliverables/
 ```
 
+## Memory
+
+The kit has a **configurable, tiered memory** so engagements stay sharp and the fork gets smarter over time.
+
+- **Per-engagement (Tier 1).** `engagements/<customer>/CONTEXT.md` stays the append-only audit trail. A new `engagements/<customer>/memory/` holds the distilled recall layer — typed records (decisions, constraints, scores, risks, summaries) plus a `MEMORY.md` index skills read first.
+- **Cross-engagement (Tier 2).** Repo-level `memory/` accumulates customer-agnostic, sensitivity-scrubbed learnings promoted from real engagements. It's the auto-accumulated counterpart to the human-curated `knowledge/` base.
+
+**Configurable.** `memory/POLICY.md` decides *when to keep detail verbatim vs. summarize for later recall* — a master `level` dial (`conservative` / `balanced` / `aggressive`), a list of record types always kept verbatim, and a mandatory sensitivity scrub before anything is promoted across engagements.
+
+**The `/memory` skill** is the engine: `compact` distills old detail into summaries (never touching the audit trail), `promote` lifts scrubbed learnings to Tier 2, `recall` answers questions grounded in memory (what a leave-behind assistant calls), and `status` reports memory health. Every other skill stays interchangeable by following the lightweight **Memory Protocol** in `CLAUDE.md`. Invoke it by intent — "compact memory", "recall what we know about X", "memory status" — which works identically across runtimes (on Claude Code, `/memory` is a reserved built-in, so the intent trigger is the canonical entry point).
+
+Everything is local markdown — no service, no database, air-gap friendly. Nothing customer-identifying ever reaches the shared cross-engagement tier.
+
 ## Customization
 
 **Add a new assessment type:**
@@ -95,10 +109,15 @@ rh-engagement-kit/
 │   ├── setup/                   # Includes hooks/pre-push
 │   ├── discover-infrastructure/
 │   ├── assess-app-portfolio/    # Includes collect-system-info.sh
-│   └── build-deliverable-deck/
+│   ├── build-deliverable-deck/
+│   └── memory/                  # Foundational long-lived memory engine
 ├── engagements/                 # Customer engagement workspaces
-│   └── .template/
-├── knowledge/                   # Institutional knowledge base
+│   └── .template/               # CONTEXT.md (audit trail) + memory/ (recall layer)
+├── memory/                      # Cross-engagement institutional memory (Tier 2)
+│   ├── POLICY.md                # Configurable remember-vs-summarize policy
+│   ├── MEMORY.md                # Recall index
+│   └── records/                 # Scrubbed, customer-agnostic learnings
+├── knowledge/                   # Human-curated knowledge base
 │   ├── solution-patterns/
 │   ├── checklists/
 │   └── templates/

@@ -20,7 +20,9 @@ This skill runs a local bash script to collect system information from the machi
 
 ### Step 0: Load Context
 
-Read `engagements/<customer>/CONTEXT.md` to determine the customer name and engagement directory.
+This skill follows the **Memory Protocol** (`CLAUDE.md`): recall from `memory/` first, append to the `CONTEXT.md` audit trail, and capture durable facts as records.
+
+Recall first — read `engagements/<customer>/memory/MEMORY.md`, then `engagements/<customer>/CONTEXT.md`, to determine the customer name and engagement directory.
 
 If multiple engagement directories exist under `engagements/`, ask the architect which one to use.
 
@@ -92,3 +94,4 @@ Append to the engagement's `CONTEXT.md`:
 ### Step 5: Recommend Next Steps
 
 - If customer wants a presentation → `/build-deliverable-deck`
+- Before moving on → recommend `/memory compact` to keep the recall layer lean
