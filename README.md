@@ -48,28 +48,35 @@ Then type `/setup` inside OpenCode.
 
 ## How It Works
 
+Every skill follows the lightweight **Memory Protocol** (defined in `CLAUDE.md`): recall from the `memory/` index first, append narrative to the append-only `CONTEXT.md` audit trail, and capture durable facts as typed records — so context compounds without anyone hand-bridging phases.
+
 ```
 /setup
-  └── Creates engagements/<customer>/CONTEXT.md (living memory)
+  ├── Gathers engagement metadata via structured interview
+  ├── Creates engagements/<customer>/ workspace (discovery/, assessments/, deliverables/)
+  └── Writes CONTEXT.md (audit trail) + memory/ recall layer (MEMORY.md index + records/)
 
 /discover-infrastructure
-  ├── Reads CONTEXT.md (knows what's already known)
+  ├── Recalls from memory/MEMORY.md first (then CONTEXT.md for deeper history)
   ├── Conducts structured interview (adapts to engagement type)
   ├── Writes discovery/infrastructure-discovery.md
-  └── Appends findings to CONTEXT.md
+  ├── Appends findings to CONTEXT.md + captures typed records
+  └── Recommends /memory compact at the phase boundary
 
 /assess-app-portfolio
-  ├── Reads CONTEXT.md (builds on infrastructure findings)
+  ├── Recalls from memory/MEMORY.md first (then CONTEXT.md)
   ├── Runs .claude/skills/assess-app-portfolio/collect-system-info.sh (demonstrates script execution)
   ├── Presents system landscape to architect for review
   ├── Writes assessments/system-info-collection.md
-  └── Appends findings to CONTEXT.md
+  ├── Appends findings to CONTEXT.md + captures typed records
+  └── Recommends /memory compact
 
 /build-deliverable-deck
-  ├── Reads EVERYTHING (CONTEXT.md + all reports)
+  ├── Recalls from memory/MEMORY.md, then reads EVERYTHING (CONTEXT.md + all reports)
   ├── Structures executive narrative from findings
   ├── Generates presentation (HTML Quick Deck or PPTX)
-  └── Writes to deliverables/
+  ├── Writes to deliverables/
+  └── Offers /memory compact + /memory promote (lift reusable learnings cross-engagement)
 ```
 
 ## Memory
@@ -85,12 +92,88 @@ The kit has a **configurable, tiered memory** so engagements stay sharp and the 
 
 Everything is local markdown — no service, no database, air-gap friendly. Nothing customer-identifying ever reaches the shared cross-engagement tier.
 
+## Writing New Skills
+
+The kit is **skills over features** — you extend it by adding skills, not code. A skill is just a directory the AI agent knows how to execute, and both Claude Code and OpenCode read from `.claude/skills/`.
+
+### Anatomy of a skill
+
+```
+.claude/skills/<skill-name>/
+├── SKILL.md          # Required — frontmatter (name, description) + instructions
+├── *.sh / *.py       # Optional — scripts the skill runs (e.g. collect-system-info.sh)
+└── hooks/            # Optional — lifecycle hooks (e.g. setup/hooks/pre-push)
+```
+
+The `description` is what *triggers* the skill — write it for the intent you want the agent to fire on, not just what it does.
+
+### Every skill is a memory citizen
+
+A new phase skill is only interchangeable if it honors the **Memory Protocol** (defined in `CLAUDE.md`). That protocol is the contract — five steps, every skill, every run:
+
+1. **Recall first** — read `engagements/<customer>/memory/MEMORY.md` before asking the architect anything.
+2. **Append to the audit trail** — write narrative to `CONTEXT.md` under `## Phase: <Skill>` headers (append-only, never rewrite).
+3. **Capture durable facts** — write typed records to `memory/records/`, one fact each, indexed in `MEMORY.md`. Tag sensitivity at capture.
+4. **Flag, don't overwrite** — contradictions get a new record with `supersedes:`, never a silent edit.
+5. **Recommend `/memory compact`** at the phase boundary.
+
+### Skill scaffold
+
+Copy this into a new `.claude/skills/<skill-name>/SKILL.md` and fill it in — the Memory Protocol steps are pre-wired so you can't forget them:
+
+```markdown
+---
+name: <skill-name>
+description: <intent that should trigger this skill — be specific>
+---
+
+# /<skill-name> — <one-line purpose>
+
+## 1. Recall
+Read engagements/<customer>/memory/MEMORY.md first. Read CONTEXT.md only for
+deeper history. Don't re-ask for anything memory already knows.
+
+## 2. Do the work
+<interview / run a script / generate an artifact — your skill's actual job>.
+Write outputs to engagements/<customer>/{discovery,assessments,deliverables}/.
+
+## 3. Append to the audit trail
+Append findings to engagements/<customer>/CONTEXT.md under
+`## Phase: <Skill Name>`. Never rewrite prior content.
+
+## 4. Capture durable facts
+Write typed records (decision-*, constraint-*, risk-*, summary-*) to
+engagements/<customer>/memory/records/, add their lines to MEMORY.md, and tag
+`sensitivity: sensitive` on any clearance / network / PII content.
+
+## 5. Close the loop
+If new info contradicts a record, supersede it (don't overwrite). Recommend
+`/memory compact` at the phase boundary.
+```
+
+### Enforcing memory utilization
+
+The protocol only compounds if every skill actually follows it. Layered ways to enforce it, cheapest first:
+
+- **Scaffold by default.** Start every new skill from the template above so the five steps ship with the skill. The cheapest enforcement is making the right thing the default.
+- **CLAUDE.md is the always-on backstop.** The Memory Protocol lives in `CLAUDE.md` and is marked as overriding default agent behavior, so the agent honors it even when a skill's own instructions are thin. Keep it there — don't let skills restate (and drift from) it.
+- **Definition of Done.** End each `SKILL.md` with a self-check the agent must pass before reporting completion: *did I recall first, append to `CONTEXT.md`, write ≥1 record and index it, and tag sensitivity?* A skill that can't tick these isn't done.
+- **Lint new skills in a hook.** The repo already ships hooks (`setup/hooks/pre-push`). Add a pre-commit check that greps each `SKILL.md` for the protocol touchpoints and fails when one is missing:
+
+  ```bash
+  for s in .claude/skills/*/SKILL.md; do
+    grep -q "MEMORY.md"  "$s" || { echo "FAIL: $s never recalls memory";            exit 1; }
+    grep -q "CONTEXT.md" "$s" || { echo "FAIL: $s never appends to the audit trail"; exit 1; }
+    grep -q "records/"   "$s" || { echo "FAIL: $s never captures records";           exit 1; }
+  done
+  ```
+
+- **Audit with `/memory status`.** At each phase boundary, "memory status" reports record counts and last compaction. If a skill ran but record counts didn't grow, it skipped step 3 — that's your signal it isn't a full memory citizen yet.
+
 ## Customization
 
 **Add a new assessment type:**
-Create a skill at `.claude/skills/assess-<topic>/SKILL.md` following the existing patterns. Both Claude Code and OpenCode read from this directory.
-
-It should read from `CONTEXT.md`, conduct an interview or intake, produce a report, and append findings back to `CONTEXT.md`.
+Create a skill at `.claude/skills/assess-<topic>/SKILL.md` — see [Writing New Skills](#writing-new-skills) for the scaffold and the Memory Protocol contract every skill must honor.
 
 **Modify an assessment:**
 Edit the SKILL.md directly. The skills are just markdown instructions — change the questions, scoring criteria, or output format to match your methodology.
