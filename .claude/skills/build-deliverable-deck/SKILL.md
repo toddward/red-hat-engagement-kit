@@ -23,8 +23,10 @@ This is the capstone skill. It reads all engagement artifacts and produces a pol
 
 ### Step 0: Load All Engagement Context
 
+This skill follows the **Memory Protocol** (`CLAUDE.md`): recall from `memory/` first, then read the full audit trail.
+
 Read everything available:
-1. `engagements/<customer>/CONTEXT.md` — full engagement memory
+1. `engagements/<customer>/memory/MEMORY.md` — distilled recall index (start here), then `CONTEXT.md` for the full audit trail
 2. `engagements/<customer>/discovery/*.md` — all discovery reports
 3. `engagements/<customer>/assessments/*.md` — all assessment reports
 4. Any architecture recommendation if it exists
@@ -185,3 +187,4 @@ Update `CONTEXT.md`:
 - "Want me to generate a summary email to send to the customer with the deck attached?"
 - "Should I create an ADR for the key architecture decisions in this engagement?"
 - "Need a one-page executive summary document alongside the deck?"
+- "Want me to run `/memory compact` to distill this engagement, and `/memory promote` to lift reusable, customer-agnostic learnings into cross-engagement memory for future forks?"

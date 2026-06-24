@@ -23,7 +23,9 @@ If no engagement exists, prompt the architect to run `/setup` first.
 
 ### Step 0: Load Context
 
-Read `engagements/<customer>/CONTEXT.md` to understand:
+This skill follows the **Memory Protocol** (`CLAUDE.md`): recall from `memory/` first, append to the `CONTEXT.md` audit trail, and capture durable findings as records.
+
+Recall first — read `engagements/<customer>/memory/MEMORY.md`, then `engagements/<customer>/CONTEXT.md`, to understand:
 - Engagement type (shapes which discovery areas to emphasize)
 - Environment type (air-gapped changes the questioning)
 - Existing RH footprint (skip questions we already know answers to)
@@ -213,6 +215,7 @@ Based on findings and engagement type, recommend the logical next skill:
 - **Security gaps found** → Security & compliance deep-dive
 - **AI/ML engagement** → GPU/data landscape warrants specialized assessment
 - **Always applicable** → `/assess-app-portfolio` then `/build-deliverable-deck`
+- **Before moving on** → recommend `/memory compact` to distill this phase into the recall layer (and `/memory promote` for any cross-customer learnings)
 
 ## Adaptive Behavior
 

@@ -61,8 +61,15 @@ Once you have the required fields, create the directory structure:
 
 ```bash
 CUSTOMER_SLUG="<customer_slug>"
-mkdir -p "engagements/${CUSTOMER_SLUG}"/{discovery,assessments,deliverables}
+mkdir -p "engagements/${CUSTOMER_SLUG}"/{discovery,assessments,deliverables,memory/records}
 ```
+
+The `memory/` directory is the engagement's **distilled recall layer** (Tier 1).
+After creating it, write a stub `engagements/${CUSTOMER_SLUG}/memory/MEMORY.md`
+with a short header and the index legend (`- [<type>] <slug> — <hook> (<date>)`)
+so downstream skills can recall from turn one. `CONTEXT.md` stays the append-only
+audit trail. See the **Memory Protocol** in `CLAUDE.md` and the knobs in
+`memory/POLICY.md`.
 
 ### Step 3: Configure Git Hooks
 
@@ -81,8 +88,9 @@ Generate the initial `CONTEXT.md` at `engagements/<slug>/CONTEXT.md` using this 
 ```markdown
 # Engagement Context: <Customer Name>
 
-> This file is the living memory for this engagement. Every skill reads from and
-> appends to this file. Do not manually edit unless correcting an error.
+> This file is the append-only audit trail for this engagement — every skill
+> appends and never rewrites it. The distilled recall layer lives in `memory/`
+> (see the Memory Protocol). Do not manually edit unless correcting an error.
 
 ## Engagement Metadata
 - **Customer:** <customer_name>

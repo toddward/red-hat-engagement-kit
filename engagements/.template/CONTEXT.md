@@ -1,7 +1,8 @@
 # Engagement Context: {{CUSTOMER_NAME}}
 
-> This file is the living memory for this engagement. Every skill reads from and
-> appends to this file. Do not manually edit unless correcting an error.
+> This file is the append-only audit trail for this engagement — every skill
+> appends and never rewrites it. The distilled recall layer lives in `memory/`
+> (see the Memory Protocol). Do not manually edit unless correcting an error.
 
 ## Engagement Metadata
 - **Customer:** {{CUSTOMER_NAME}}
