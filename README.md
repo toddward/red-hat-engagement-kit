@@ -130,4 +130,4 @@ Add new skills to `.claude/skills/` — both Claude Code and OpenCode read from 
 
 ## License
 
-Internal Red Hat use. See your team's guidelines for external distribution.
+Contact Todd regarding guidelines for external distribution.
